@@ -5,6 +5,11 @@ scratch** — OUs, users, groups, computers, Group Policy, a file share,
 delegation, a gMSA, auditing, backup and reporting — with a plain-English note
 above every single command explaining what it actually does.
 
+**All of the commands in this script were obtained through a class lecture.** The
+commands themselves, and the order they run in, come from a taught Windows Server
+course. What was added afterwards is the explanation above each command, the
+structure, and the corrections.
+
 It exists because most AD scripts you find are either a wall of commands with no
 explanation, or an explanation with no runnable script. This is both, in the
 order the commands have to run.

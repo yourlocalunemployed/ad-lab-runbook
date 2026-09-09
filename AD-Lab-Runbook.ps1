@@ -1,7 +1,8 @@
 <#
 ===============================================================================
   ACTIVE DIRECTORY LAB RUNBOOK
-  Compiled from classroom lab material, then formatted and validated.
+  All commands in this script were obtained through a class lecture.
+  The explanations, structure and corrections were added afterwards.
 
   Build a lab Active Directory domain from scratch: OUs, users, groups,
   computers, Group Policy, a file share, delegation, a gMSA, auditing and a
