@@ -1,0 +1,13 @@
+# Lab output — machine-specific, never commit
+LabReports/
+LabBackups/
+*.csv
+*.evtx
+*.001
+*.E01
+
+# Editor / OS noise
+.~lock.*#
+.DS_Store
+Thumbs.db
+*.swp

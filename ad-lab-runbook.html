@@ -1,0 +1,1964 @@
+<title>Active Directory Lab Runbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+:root{
+  --paper:#F1F4F4;
+  --surface:#FFFFFF;
+  --surface-2:#E7EDEC;
+  --ink:#14201F;
+  --muted:#556463;
+  --faint:#8A9998;
+  --rule:#D3DCDB;
+  --accent:#12545C;
+  --accent-2:#1B7C82;
+  --accent-soft:#DCEAEA;
+  --warn:#8A5310;
+  --warn-soft:#FAEFDC;
+  --warn-rule:#D9A55C;
+  --code-bg:#0D1A1B;
+  --code-ink:#D6E3E1;
+  --code-muted:#6F8785;
+  --code-key:#7FD1CE;
+  --code-str:#D9B26A;
+  --code-var:#9DBEE8;
+  --code-cmt:#5B7371;
+  --shadow:0 1px 2px rgba(20,32,31,.06),0 8px 24px -12px rgba(20,32,31,.18);
+  --maxw:1360px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0C1414;
+    --surface:#121D1D;
+    --surface-2:#182525;
+    --ink:#E2EAE9;
+    --muted:#9AABA9;
+    --faint:#718280;
+    --rule:#243434;
+    --accent:#63BFC0;
+    --accent-2:#8AD5D2;
+    --accent-soft:#16302F;
+    --warn:#E0A961;
+    --warn-soft:#2A2015;
+    --warn-rule:#7A5A24;
+    --code-bg:#070F10;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0C1414;
+  --surface:#121D1D;
+  --surface-2:#182525;
+  --ink:#E2EAE9;
+  --muted:#9AABA9;
+  --faint:#718280;
+  --rule:#243434;
+  --accent:#63BFC0;
+  --accent-2:#8AD5D2;
+  --accent-soft:#16302F;
+  --warn:#E0A961;
+  --warn-soft:#2A2015;
+  --warn-rule:#7A5A24;
+  --code-bg:#070F10;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Literata",Georgia,"Times New Roman",serif;
+  font-size:16px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4,.ui{font-family:"Archivo","Helvetica Neue",Arial,sans-serif}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+
+/* ---------- masthead ---------- */
+.masthead{
+  border-bottom:1px solid var(--rule);
+  background:var(--surface);
+}
+.masthead-in{
+  max-width:var(--maxw);margin:0 auto;padding:44px 28px 36px;
+}
+.eyebrow{
+  font-family:"Archivo",sans-serif;font-size:11px;font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--accent);
+  display:flex;gap:10px;align-items:center;flex-wrap:wrap;
+}
+.eyebrow .dot{width:4px;height:4px;border-radius:50%;background:var(--faint)}
+h1{
+  font-size:clamp(30px,4.4vw,48px);font-weight:700;letter-spacing:-.02em;
+  line-height:1.08;margin:14px 0 0;text-wrap:balance;max-width:16ch;
+}
+.standfirst{
+  margin:16px 0 0;max-width:62ch;font-size:17px;color:var(--muted);
+}
+.byline{
+  margin:20px 0 0;display:flex;gap:14px;align-items:center;flex-wrap:wrap;
+  font-family:"Archivo",sans-serif;font-size:13.5px;color:var(--muted);
+}
+.byline b{color:var(--ink);font-weight:600}
+.byline .sep{width:1px;height:14px;background:var(--rule);flex:none}
+.meta{
+  margin-top:22px;padding-top:20px;border-top:1px solid var(--rule);
+  display:flex;flex-wrap:wrap;gap:28px;
+}
+.meta div{display:flex;flex-direction:column;gap:2px}
+.meta dt{
+  font-family:"Archivo",sans-serif;font-size:10px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--faint);
+}
+.meta dd{margin:0;font-size:14px;font-family:"JetBrains Mono",monospace;color:var(--ink)}
+
+/* ---------- shell ---------- */
+.shell{
+  max-width:var(--maxw);margin:0 auto;padding:0 28px 96px;
+  display:grid;grid-template-columns:238px minmax(0,1fr);gap:56px;
+  align-items:start;
+}
+@media (max-width:1040px){ .shell{grid-template-columns:1fr;gap:0} }
+
+/* ---------- rail ---------- */
+.rail{position:sticky;top:24px;padding-top:40px}
+@media (max-width:1040px){
+  .rail{position:static;padding:28px 0 0}
+}
+.rail h2{
+  font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--faint);margin:0 0 14px;
+}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+@media (max-width:1040px){
+  .rail ol{flex-direction:row;flex-wrap:wrap;gap:6px}
+}
+.rail a{
+  display:flex;gap:10px;align-items:baseline;text-decoration:none;
+  color:var(--muted);padding:5px 8px;border-radius:5px;
+  font-family:"Archivo",sans-serif;font-size:13px;line-height:1.35;
+  border-left:2px solid transparent;
+}
+@media (max-width:1040px){
+  .rail a{border-left:none;border:1px solid var(--rule);font-size:12px}
+}
+.rail a:hover{color:var(--ink);background:var(--surface-2)}
+.rail a.on{color:var(--accent);border-left-color:var(--accent);background:var(--accent-soft);font-weight:600}
+@media (max-width:1040px){ .rail a.on{border-color:var(--accent)} }
+.rail a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rail .n{
+  font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--faint);
+  font-variant-numeric:tabular-nums;flex:none;
+}
+.rail a.on .n{color:var(--accent)}
+
+/* ---------- main ---------- */
+main{padding-top:40px;min-width:0}
+.intro{
+  background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+  padding:26px 28px;margin-bottom:44px;box-shadow:var(--shadow);
+}
+.intro h2{font-size:17px;margin:0 0 6px;letter-spacing:-.01em}
+.intro > p{margin:0 0 20px;color:var(--muted);font-size:15px;max-width:64ch}
+
+.verbs{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:0;border:1px solid var(--rule);border-radius:8px;overflow:hidden;
+}
+.verb{padding:11px 14px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);background:var(--surface)}
+.verb b{
+  font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--accent);
+  font-weight:600;display:block;
+}
+.verb span{font-size:13px;color:var(--muted);line-height:1.45;display:block;margin-top:1px}
+
+.keys{margin-top:20px;display:flex;flex-direction:column;gap:7px}
+.key{display:flex;gap:12px;align-items:baseline;font-size:14px;color:var(--muted)}
+.key code{
+  flex:none;min-width:44px;text-align:center;background:var(--surface-2);
+  color:var(--ink);padding:1px 7px;border-radius:4px;font-size:12.5px;
+  border:1px solid var(--rule);
+}
+
+/* ---------- known issues ---------- */
+.issues{
+  border:1px solid var(--warn-rule);background:var(--warn-soft);
+  border-radius:10px;padding:22px 26px;margin-bottom:48px;
+}
+.issues h2{
+  font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--warn);margin:0 0 4px;
+}
+.issues > p{margin:0 0 16px;font-size:14.5px;color:var(--muted);max-width:64ch}
+.issues ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:11px}
+.issues li{font-size:14.5px;line-height:1.6}
+.issues li b{font-weight:600}
+.issues code{
+  background:rgba(138,83,16,.10);color:var(--warn);padding:1px 5px;
+  border-radius:3px;font-size:12.5px;
+}
+
+/* ---------- parts ---------- */
+.part{scroll-margin-top:20px;margin-bottom:64px}
+.part-head{
+  display:flex;gap:18px;align-items:flex-start;
+  padding-bottom:18px;border-bottom:2px solid var(--ink);margin-bottom:22px;
+}
+.part-num{
+  font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:600;
+  color:var(--surface);background:var(--ink);border-radius:5px;
+  padding:5px 9px;flex:none;margin-top:4px;font-variant-numeric:tabular-nums;
+  letter-spacing:.04em;
+}
+.part-head h2{
+  margin:0;font-size:clamp(21px,2.6vw,27px);font-weight:700;
+  letter-spacing:-.018em;line-height:1.2;text-wrap:balance;
+}
+.part-head .sub{
+  margin:5px 0 0;color:var(--muted);font-size:15px;max-width:60ch;
+  font-family:"Literata",serif;
+}
+.lede{margin:0 0 24px;max-width:66ch;color:var(--ink)}
+.lede + .lede{margin-top:-10px}
+
+/* ---------- command blocks ---------- */
+.cmd{margin:0 0 26px}
+.cmd > p{margin:0 0 10px;max-width:66ch;color:var(--muted);font-size:15px}
+.cmd > p strong{color:var(--ink);font-weight:600}
+.cmd > p code, .lede code, .note code{
+  background:var(--surface-2);padding:1px 5px;border-radius:3px;
+  font-size:12.5px;color:var(--ink);border:1px solid var(--rule);
+}
+.codewrap{position:relative}
+pre{
+  margin:0;background:var(--code-bg);color:var(--code-ink);
+  border-radius:8px;padding:16px 18px;overflow-x:auto;
+  font-size:13px;line-height:1.62;border:1px solid rgba(255,255,255,.06);
+}
+pre code{background:none;border:none;padding:0;font-size:inherit;color:inherit}
+.c-cmt{color:var(--code-cmt);font-style:italic}
+.c-key{color:var(--code-key)}
+.c-str{color:var(--code-str)}
+.c-var{color:var(--code-var)}
+.c-par{color:var(--code-muted)}
+.copy{
+  position:absolute;top:9px;right:9px;opacity:0;transition:opacity .13s;
+  font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:600;
+  letter-spacing:.09em;text-transform:uppercase;
+  background:rgba(255,255,255,.09);color:#B9CBC9;border:1px solid rgba(255,255,255,.14);
+  border-radius:5px;padding:4px 9px;cursor:pointer;
+}
+.codewrap:hover .copy,.copy:focus-visible{opacity:1}
+.copy:hover{background:rgba(255,255,255,.16);color:#fff}
+.copy:focus-visible{outline:2px solid var(--accent-2);outline-offset:2px}
+.copy.done{background:rgba(127,209,206,.2);color:#9EE0DD;border-color:rgba(127,209,206,.4)}
+@media (prefers-reduced-motion:reduce){ .copy{transition:none} }
+
+/* ---------- notes ---------- */
+.note{
+  border-left:3px solid var(--accent);background:var(--accent-soft);
+  padding:14px 18px;border-radius:0 7px 7px 0;margin:0 0 26px;
+  font-size:14.5px;max-width:70ch;
+}
+.note b{
+  display:block;font-family:"Archivo",sans-serif;font-size:10.5px;font-weight:600;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:4px;
+}
+.note.warn{border-left-color:var(--warn-rule);background:var(--warn-soft)}
+.note.warn b{color:var(--warn)}
+.note p{margin:0 0 9px}
+.note p:last-child{margin:0}
+.note pre{margin:9px 0 0;font-size:12.5px}
+
+/* ---------- details ---------- */
+details{
+  border:1px solid var(--rule);border-radius:8px;background:var(--surface);
+  margin:0 0 26px;overflow:hidden;
+}
+summary{
+  cursor:pointer;padding:11px 16px;font-family:"Archivo",sans-serif;
+  font-size:13px;font-weight:600;color:var(--accent);list-style:none;
+  display:flex;align-items:center;gap:8px;
+}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"+";font-family:"JetBrains Mono",monospace;font-size:14px;color:var(--faint)}
+details[open] summary::before{content:"\2013"}
+summary:hover{background:var(--surface-2)}
+summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+details .body{padding:0 16px 16px}
+
+/* ---------- tree + agdlp ---------- */
+.tree{
+  background:var(--code-bg);color:var(--code-ink);border-radius:8px;
+  padding:18px 20px;overflow-x:auto;font-size:13px;line-height:1.7;
+  margin:0 0 26px;border:1px solid rgba(255,255,255,.06);
+}
+.tree .b{color:var(--code-muted)}
+.tree .l{color:var(--code-key)}
+.tree .g{color:var(--code-cmt);font-style:italic}
+
+figure{margin:0 0 28px}
+figcaption{
+  font-family:"Archivo",sans-serif;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--faint);margin-top:10px;font-weight:600;
+}
+.agdlp{
+  background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+  padding:22px;overflow-x:auto;
+}
+.agdlp svg{display:block;min-width:520px;width:100%;height:auto}
+
+/* ---------- footer ---------- */
+footer{
+  border-top:1px solid var(--rule);background:var(--surface);
+  padding:34px 28px 44px;
+}
+.foot-in{max-width:var(--maxw);margin:0 auto;display:flex;gap:36px;flex-wrap:wrap;justify-content:space-between}
+footer p{margin:0;font-size:14px;color:var(--muted);max-width:56ch}
+footer b{font-family:"Archivo",sans-serif;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);display:block;margin-bottom:5px;font-weight:600}
+</style>
+
+<header class="masthead">
+  <div class="masthead-in">
+    <div class="eyebrow">
+      <span>Windows Server</span><span class="dot"></span>
+      <span>Active Directory</span><span class="dot"></span>
+      <span>PowerShell</span>
+    </div>
+    <h1>Active Directory Lab Runbook</h1>
+    <p class="standfirst">
+      Every command from the AD lab, in the order it has to run, with a plain-English
+      note on what each one actually does. Parts 1&ndash;8 plus 22 are the basic
+      structure the Cluster&nbsp;3 project asks for; everything between is what the
+      class covered on top.
+    </p>
+    <p class="byline">
+      <span>Compiled from classroom lab material</span>
+      <span class="sep"></span>
+      <span>Formatted and validated by <b>Claude</b></span>
+    </p>
+    <dl class="meta">
+      <div><dt>Domain</dt><dd>contoso.com</dd></div>
+      <div><dt>Parts</dt><dd>22</dd></div>
+      <div><dt>Module</dt><dd>ActiveDirectory, GroupPolicy</dd></div>
+      <div><dt>Run as</dt><dd>Domain Admin, on the DC</dd></div>
+    </dl>
+  </div>
+</header>
+
+<div class="shell">
+
+  <nav class="rail" aria-label="Parts">
+    <h2>Core &mdash; the project build</h2>
+    <ol>
+      <li><a href="#p1"><span class="n">01</span><span>Look</span></a></li>
+      <li><a href="#p2"><span class="n">02</span><span>Store</span></a></li>
+      <li><a href="#p3"><span class="n">03</span><span>Survey</span></a></li>
+      <li><a href="#p4"><span class="n">04</span><span>Build the OUs</span></a></li>
+      <li><a href="#p5"><span class="n">05</span><span>Defaults &amp; password</span></a></li>
+      <li><a href="#p6"><span class="n">06</span><span>Users</span></a></li>
+      <li><a href="#p7"><span class="n">07</span><span>Groups</span></a></li>
+      <li><a href="#p8"><span class="n">08</span><span>Computers</span></a></li>
+      <li><a href="#p22"><span class="n">22</span><span>Verify</span></a></li>
+    </ol>
+    <h2 style="margin-top:22px">Optional &mdash; beyond the project</h2>
+    <ol>
+      <li><a href="#p9"><span class="n">09</span><span>Group Policy</span></a></li>
+      <li><a href="#p10"><span class="n">10</span><span>File share</span></a></li>
+      <li><a href="#p11"><span class="n">11</span><span>Account lifecycle</span></a></li>
+      <li><a href="#p12"><span class="n">12</span><span>Delegation</span></a></li>
+      <li><a href="#p13"><span class="n">13</span><span>gMSA</span></a></li>
+      <li><a href="#p14"><span class="n">14</span><span>Querying</span></a></li>
+      <li><a href="#p15"><span class="n">15</span><span>Auditing</span></a></li>
+      <li><a href="#p16"><span class="n">16</span><span>Privileged review</span></a></li>
+      <li><a href="#p17"><span class="n">17</span><span>DC health</span></a></li>
+      <li><a href="#p18"><span class="n">18</span><span>Recycle Bin</span></a></li>
+      <li><a href="#p19"><span class="n">19</span><span>Backup</span></a></li>
+      <li><a href="#p20"><span class="n">20</span><span>CSV reports</span></a></li>
+      <li><a href="#p21"><span class="n">21</span><span>Audit account</span></a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+    <section class="intro">
+      <h2>How to read this</h2>
+      <p>
+        Nearly all of PowerShell is guessable once you know the verb. The verb tells you
+        what a command does to the world; the noun tells you what it does it to.
+      </p>
+      <div class="verbs">
+        <div class="verb"><b>Get-</b><span>Just look. Never changes anything — safe to run any time.</span></div>
+        <div class="verb"><b>New-</b><span>Create something that doesn't exist yet.</span></div>
+        <div class="verb"><b>Set-</b><span>Change something that already exists.</span></div>
+        <div class="verb"><b>Add-</b><span>Put something into something else.</span></div>
+        <div class="verb"><b>Install-</b><span>Install a Windows feature or role.</span></div>
+        <div class="verb"><b>Import-</b><span>Load a toolbox of commands into this session.</span></div>
+        <div class="verb"><b>Resolve-</b><span>Ask DNS a question.</span></div>
+        <div class="verb"><b>Remove-</b><span>Delete. Not used here — worth knowing it exists.</span></div>
+      </div>
+      <div class="keys">
+        <div class="key"><code>|</code><span><b>Pipe.</b> Take what came out of the left and feed it into the right.</span></div>
+        <div class="key"><code>`</code><span><b>Backtick</b> at the end of a line: this command continues on the next line. Nothing may follow it — not even a space.</span></div>
+        <div class="key"><code>$x</code><span><b>Variable.</b> A box you put something in and reuse later.</span></div>
+        <div class="key"><code>@( )</code><span><b>Array.</b> A numbered list of things.</span></div>
+        <div class="key"><code>@{ }</code><span><b>Hashtable.</b> A list of <span class="mono">Name = Value</span> pairs, like one row of a form.</span></div>
+        <div class="key"><code>DN</code><span><b>Distinguished Name.</b> An object's full address, read right to left: <span class="mono">OU=Finance,OU=LAB-Users,DC=contoso,DC=com</span></span></div>
+      </div>
+    </section>
+
+    <section class="issues">
+      <h2>24 things in the notes that don&rsquo;t work</h2>
+      <p>
+        Every command below is reproduced here exactly as it was written in class,
+        mistakes included, and flagged where it appears. The downloadable
+        <span class="mono">.ps1</span> has all 24 corrected and marked with a
+        <span class="mono"># FIXED:</span> comment. These are the ones worth knowing about:
+      </p>
+      <ol>
+        <li><b>Four stop the script dead.</b> A missing <code>$</code> on
+          <code>UserGPO =</code>; curly <code>&ldquo; &rdquo;</code> quotes from a Word
+          paste in three LDAP filters; <code>"audit. Test"</code> and
+          <code>"recycle. Test"</code> with a stray space; and the words
+          <code>Unlock an account</code> sitting on a line as if they were a command.</li>
+        <li><b>Two fail silently &mdash; the dangerous kind.</b> Misplaced brackets mean
+          <code>New-GPLink</code> never runs, so the workstation GPO is created but never
+          linked and does nothing at all. And <code>SchemaMastGet-NetAdapterer</code>
+          just returns an empty column.</li>
+        <li><b>Four error out when you reach them.</b> The two
+          <code>DL-FinanceShare-*</code> groups get members added but are never created;
+          <code>Export-Csv</code> writes to a folder that may not exist;
+          <code>gpresult /h</code> needs an output path; <code>whomai</code> is a typo.</li>
+        <li><b>One is the worst in the set.</b> <code>$UsersOU</code> gets silently
+          redefined to a single department OU partway through, so every later command
+          using it targets the wrong place. Nothing errors &mdash; the wrong thing just
+          quietly happens.</li>
+        <li><b>Thirteen are consistency problems.</b> Mostly hardcoded domains
+          (<code>contoso.com</code> and <code>lab.local</code> both appear) and
+          <code>$InitialPassword</code> being reused twice, each time overwriting the
+          secure string from Part&nbsp;5.</li>
+      </ol>
+    </section>
+
+    <!-- ============ PART 1 ============ -->
+    <section class="part" id="p1">
+      <div class="part-head">
+        <span class="part-num">01</span>
+        <div>
+          <h2>Look — what am I connected to?</h2>
+          <p class="sub">Pure read-only. Getting your bearings before touching anything.</p>
+        </div>
+      </div>
+
+      <div class="cmd">
+        <p>What version of PowerShell is this? First thing to check — older versions are missing commands you'll want.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$PSVersionTable</span></code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>The full profile of this domain, and of the forest that contains it. Both dump a lot; the trimmed versions below are the readable ones.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADDomain</span>
+<span class="c-key">Get-ADForest</span></code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>Same thing, but only the columns that matter. <strong>DomainMode</strong> is the feature level, set by your <em>oldest</em> domain controller's Windows version. The last three are FSMO roles.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADDomain</span> |
+   <span class="c-key">Select-Object</span> DNSRoot, NetBIOSName, DistinguishedName,
+       DomainMode, PDCEmulator, RIDMaster, InfrastructureMaster</code></pre></div>
+      </div>
+
+      <div class="note">
+        <b>FSMO</b>
+        <p>Five special jobs that only <em>one</em> domain controller can hold at a time:
+        PDCEmulator, RIDMaster, InfrastructureMaster, SchemaMaster and DomainNamingMaster.
+        Knowing which DC holds which is one of those things you only need at 2am, and then
+        you need it badly.</p>
+      </div>
+
+      <div class="cmd">
+        <p>Forest level. <strong>GlobalCatalogs</strong> are the DCs holding a searchable summary of every object in the forest.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADForest</span> |
+   <span class="c-key">Select-Object</span> Name, RootDomain, ForestMode,
+       SchemaMastGet-NetAdapterer, DomainNamingMaster, GlobalCatalogs</code></pre></div>
+      </div>
+
+      <div class="note warn">
+        <b>Left as typed</b>
+        <p><span class="mono">SchemaMastGet-NetAdapterer</span> is a paste accident — it should be
+        <span class="mono">SchemaMaster</span>. As written the column returns empty rather than erroring.</p>
+      </div>
+    </section>
+
+    <!-- ============ PART 2 ============ -->
+    <section class="part" id="p2">
+      <div class="part-head">
+        <span class="part-num">02</span>
+        <div>
+          <h2>Store — put the details in variables</h2>
+          <p class="sub">You're about to type the domain address dozens of times. Store it once.</p>
+        </div>
+      </div>
+
+      <p class="lede">
+        Every later command can now just say <code>$DomainDN</code>. Run this in a different
+        domain and nothing below needs editing — which is the real reason to bother.
+      </p>
+
+      <div class="cmd">
+        <p>Grab the whole domain and forest objects once, then pull the three useful fields out. The dot means <em>reach inside this object and get that one property</em>.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$Domain</span> = <span class="c-key">Get-ADDomain</span>
+<span class="c-var">$Forest</span> = <span class="c-key">Get-ADForest</span>
+
+<span class="c-var">$DomainName</span> = <span class="c-var">$Domain</span>.DNSRoot              <span class="c-cmt"># contoso.com</span>
+<span class="c-var">$DomainDN</span>   = <span class="c-var">$Domain</span>.DistinguishedName    <span class="c-cmt"># DC=contoso,DC=com</span>
+<span class="c-var">$NetBIOS</span>    = <span class="c-var">$Domain</span>.NetBIOSName          <span class="c-cmt"># CONTOSO</span></code></pre></div>
+      </div>
+
+      <div class="note warn">
+        <b>Easy to get caught by</b>
+        <p>Variables only live as long as the PowerShell window. Close it, reopen, and you
+        <strong>must</strong> re-run this part before anything from Part 4 onwards will work —
+        otherwise <span class="mono">$DomainDN</span> is empty and your OUs get created in
+        strange places, or not at all.</p>
+      </div>
+    </section>
+
+    <!-- ============ PART 3 ============ -->
+    <section class="part" id="p3">
+      <div class="part-head">
+        <span class="part-num">03</span>
+        <div>
+          <h2>Survey — what's installed, what's already here?</h2>
+          <p class="sub">Checking your tools are present, and taking the "before" picture.</p>
+        </div>
+      </div>
+
+      <div class="cmd">
+        <p>Every domain controller in the domain. <strong>IsGlobalCatalog</strong> tells you whether this DC holds the forest-wide index.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADDomainController</span> <span class="c-par">-Filter</span> * |
+   <span class="c-key">Format-Table</span> HostName, IPv4Address, Site, IsGlobalCatalog, OperationMasterRoles</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>Everything installed on this server. Reads as: <em>get all features → keep the installed ones → sort → show as a table</em>.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-WindowsFeature</span> |
+   <span class="c-key">Where-Object</span> InstallState <span class="c-par">-eq</span> <span class="c-str">"Installed"</span> |
+   <span class="c-key">Sort-Object</span> Name |
+   <span class="c-key">Format-Table</span> DisplayName, Name</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>Check the four that matter, then install the two management toolsets. <strong>This is the first command in the whole script that changes the server.</strong></p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-WindowsFeature</span> AD-Domain-Services, DNS, RSAT-AD-Tools, GPMC
+
+<span class="c-key">Install-WindowsFeature</span> RSAT-AD-Tools, GPMC <span class="c-par">-IncludeManagementTools</span></code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>Load the command sets. Modern PowerShell usually does this for you — doing it by hand means you get a clear error <em>now</em> rather than a confusing one later.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Import-Module</span> ActiveDirectory
+<span class="c-key">Import-Module</span> GroupPolicy
+
+<span class="c-key">Get-Module</span> ActiveDirectory, GroupPolicy</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>The "before" snapshot — OUs, users and computers as they stand right now. Come back and run these again at the end to see your work.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADOrganizationalUnit</span> <span class="c-par">-Filter</span> * |
+   <span class="c-key">Select-Object</span> Name, DistinguishedName |
+   <span class="c-key">Sort-Object</span> DistinguishedName
+
+<span class="c-key">Get-ADUser</span> <span class="c-par">-Filter</span> * |
+   <span class="c-key">Select-Object</span> Name, SamAccountName, Enabled |
+   <span class="c-key">Sort-Object</span> Name
+
+<span class="c-key">Get-ADComputer</span> <span class="c-par">-Filter</span> * |
+   <span class="c-key">Select-Object</span> Name, Enabled, DistinguishedName</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>The legacy tool that prints which DC holds each of the five FSMO roles. Not PowerShell, but it's the fastest way to see all five at once.</p>
+        <div class="codewrap"><pre><code>netdom query fsmo</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p><strong>The DNS checks — pay attention to these.</strong> A domain controller must point at DNS that knows about the domain.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-DnsClientServerAddress</span> <span class="c-par">-AddressFamily</span> IPv4
+
+<span class="c-key">Get-DnsServerZone</span>
+
+<span class="c-key">Resolve-DnsName</span> <span class="c-str">"_ldap._tcp.dc._msdcs.contoso.com"</span> <span class="c-par">-Type</span> SRV
+<span class="c-key">Resolve-DnsName</span> <span class="c-str">"_kerberos._tcp.contoso.com"</span> <span class="c-par">-Type</span> SRV</code></pre></div>
+      </div>
+
+      <div class="note">
+        <b>Why the SRV records matter</b>
+        <p>Clients <em>find</em> domain controllers by asking DNS for these records — they're
+        signposts saying "the DC lives here" and "go here to authenticate". No answer means
+        nobody can log in, no matter what else you've configured correctly.</p>
+        <p>When someone says Active Directory is broken, it is nearly always DNS.</p>
+      </div>
+    </section>
+
+    <!-- ============ PART 4 ============ -->
+    <section class="part" id="p4">
+      <div class="part-head">
+        <span class="part-num">04</span>
+        <div>
+          <h2>Build — create the OU structure</h2>
+          <p class="sub">The filing cabinet comes before the files.</p>
+        </div>
+      </div>
+
+      <p class="lede">
+        An <strong>OU</strong> is a folder inside AD. Users, groups and computers all need a
+        <code>-Path</code> saying where to put them, and that path is an OU. The reason OUs
+        actually matter, though, is that <em>Group Policy links to them</em> — which is what
+        Part 9 depends on.
+      </p>
+
+      <div class="note">
+        <b>The pattern that repeats six times</b>
+        <p>Every block in this part is the same shape:</p>
+        <pre><code><span class="c-key">if</span> (<span class="c-par">-not</span> (<span class="c-key">Get-ADOrganizationalUnit</span> ...)) { <span class="c-key">New-ADOrganizationalUnit</span> ... }</code></pre>
+        <p style="margin-top:9px">"If looking for it does <em>not</em> find it, create it." That makes the script
+        <strong>safe to re-run</strong> — run it twice and the second run creates nothing and
+        errors on nothing. It's called being idempotent, and it's the habit that separates a
+        script from a one-off.</p>
+      </div>
+
+      <div class="cmd">
+        <p>Build each OU's full address up front, so later commands just say <code>$UsersOU</code>. Each one ends in <code>$DomainDN</code>, so it resolves to <span class="mono">OU=LAB-Users,DC=contoso,DC=com</span>.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$AdminsOU</span>          = <span class="c-str">"OU=LAB-Admins,<span class="c-var">$DomainDN</span>"</span>
+<span class="c-var">$UsersOU</span>           = <span class="c-str">"OU=LAB-Users,<span class="c-var">$DomainDN</span>"</span>
+<span class="c-var">$ComputersOU</span>       = <span class="c-str">"OU=LAB-Computers,<span class="c-var">$DomainDN</span>"</span>
+<span class="c-var">$GroupsOU</span>          = <span class="c-str">"OU=LAB-Groups,<span class="c-var">$DomainDN</span>"</span>
+<span class="c-var">$ServiceAccountsOU</span> = <span class="c-str">"OU=LAB-Service-Accounts,<span class="c-var">$DomainDN</span>"</span>
+<span class="c-var">$TestObjectsOU</span>     = <span class="c-str">"OU=LAB-Test-Objects,<span class="c-var">$DomainDN</span>"</span></code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>The six top-level OUs, then the loop that creates them. <code>$OU</code> is "the current one" on each pass.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$TopLevelOUs</span> = @(
+    <span class="c-str">"LAB-Admins"</span>,
+    <span class="c-str">"LAB-Users"</span>,
+    <span class="c-str">"LAB-Computers"</span>,
+    <span class="c-str">"LAB-Groups"</span>,
+    <span class="c-str">"LAB-Service-Accounts"</span>,
+    <span class="c-str">"LAB-Test-Objects"</span>
+)
+
+<span class="c-key">foreach</span> (<span class="c-var">$OU</span> <span class="c-key">in</span> <span class="c-var">$TopLevelOUs</span>) {
+    <span class="c-key">if</span> (<span class="c-par">-not</span> (<span class="c-key">Get-ADOrganizationalUnit</span> `
+        <span class="c-par">-LDAPFilter</span> <span class="c-str">"(ou=<span class="c-var">$OU</span>)"</span> `
+        <span class="c-par">-SearchBase</span> <span class="c-var">$DomainDN</span> `
+        <span class="c-par">-SearchScope</span> OneLevel `
+        <span class="c-par">-ErrorAction</span> SilentlyContinue)) {
+
+        <span class="c-key">New-ADOrganizationalUnit</span> `
+            <span class="c-par">-Name</span> <span class="c-var">$OU</span> `
+            <span class="c-par">-Path</span> <span class="c-var">$DomainDN</span> `
+            <span class="c-par">-ProtectedFromAccidentalDeletion</span> <span class="c-var">$true</span>
+    }
+}</code></pre></div>
+      </div>
+
+      <div class="note">
+        <b>The switches, decoded</b>
+        <p><span class="mono">-SearchScope OneLevel</span> looks only one level down, not the whole
+        tree. <span class="mono">-ErrorAction SilentlyContinue</span> means "not found" is expected,
+        don't shout about it. <span class="mono">-ProtectedFromAccidentalDeletion</span> ticks the
+        box that stops someone deleting the OU by mistake.</p>
+      </div>
+
+      <p class="lede">
+        The next five blocks are the same pattern aimed one level deeper each time. Rather than
+        repeat them, here's what they build:
+      </p>
+
+      <div class="tree"><span class="l">contoso.com</span>
+<span class="b">├─</span> <span class="l">LAB-Admins</span>
+<span class="b">│  ├─</span> Tier-0            <span class="g">domain admins — the crown jewels</span>
+<span class="b">│  ├─</span> Tier-1            <span class="g">server admins</span>
+<span class="b">│  └─</span> Tier-2            <span class="g">helpdesk / workstations</span>
+<span class="b">├─</span> <span class="l">LAB-Users</span>
+<span class="b">│  ├─</span> Finance
+<span class="b">│  ├─</span> Human Resources
+<span class="b">│  ├─</span> Information Technology
+<span class="b">│  ├─</span> Sales
+<span class="b">│  ├─</span> Contractors
+<span class="b">│  └─</span> Disabled Users    <span class="g">where leavers get parked, not deleted</span>
+<span class="b">├─</span> <span class="l">LAB-Computers</span>
+<span class="b">│  ├─</span> Workstations
+<span class="b">│  │  ├─</span> Sydney         <span class="g">split by site so GPO can differ per office</span>
+<span class="b">│  │  └─</span> Melbourne
+<span class="b">│  ├─</span> Servers
+<span class="b">│  └─</span> Quarantine        <span class="g">somewhere to drop a suspect machine</span>
+<span class="b">├─</span> <span class="l">LAB-Groups</span>
+<span class="b">│  ├─</span> Role Groups       <span class="g">"who you are"</span>
+<span class="b">│  └─</span> Resource Groups   <span class="g">"what you can reach"</span>
+<span class="b">├─</span> <span class="l">LAB-Service-Accounts</span>  <span class="g">built, not used yet</span>
+<span class="b">└─</span> <span class="l">LAB-Test-Objects</span>      <span class="g">built, not used yet</span></div>
+
+      <details>
+        <summary>The deeper blocks, in full</summary>
+        <div class="body">
+          <div class="cmd">
+            <p>Department OUs inside <code>LAB-Users</code> — note <code>-SearchBase</code> and <code>-Path</code> become <code>$UsersOU</code> instead of <code>$DomainDN</code>.</p>
+            <div class="codewrap"><pre><code><span class="c-var">$DepartmentOUs</span> = @(
+  <span class="c-str">"Finance"</span>,
+   <span class="c-str">"Human Resources"</span>,
+   <span class="c-str">"Information Technology"</span>,
+   <span class="c-str">"Sales"</span>,
+  <span class="c-str">"Contractors"</span>,
+   <span class="c-str">"Disabled Users"</span>
+)
+
+<span class="c-key">foreach</span> (<span class="c-var">$OU</span> <span class="c-key">in</span> <span class="c-var">$DepartmentOUs</span>) {
+   <span class="c-key">if</span> (<span class="c-par">-not</span> (<span class="c-key">Get-ADOrganizationalUnit</span> `
+       <span class="c-par">-LDAPFilter</span> <span class="c-str">"(ou=<span class="c-var">$OU</span>)"</span> `
+       <span class="c-par">-SearchBase</span> <span class="c-var">$UsersOU</span> `
+       <span class="c-par">-SearchScope</span> OneLevel `
+       <span class="c-par">-ErrorAction</span> SilentlyContinue)) {
+
+      <span class="c-key">New-ADOrganizationalUnit</span> `
+           <span class="c-par">-Name</span> <span class="c-var">$OU</span> `
+           <span class="c-par">-Path</span> <span class="c-var">$UsersOU</span> `
+          <span class="c-par">-ProtectedFromAccidentalDeletion</span> <span class="c-var">$true</span>
+   }
+}</code></pre></div>
+          </div>
+          <div class="cmd">
+            <p>A shorter style for the rest — pipe the list into <code>ForEach-Object</code>, where <code>$_</code> means "the current item". Same job as the loop above.</p>
+            <div class="codewrap"><pre><code><span class="c-str">"Tier-0"</span>, <span class="c-str">"Tier-1"</span>, <span class="c-str">"Tier-2"</span> | <span class="c-key">ForEach-Object</span> {
+   <span class="c-key">if</span> (<span class="c-par">-not</span> (<span class="c-key">Get-ADOrganizationalUnit</span> `
+       <span class="c-par">-LDAPFilter</span> <span class="c-str">"(ou=<span class="c-var">$_</span>)"</span> `
+       <span class="c-par">-SearchBase</span> <span class="c-var">$AdminsOU</span> `
+       <span class="c-par">-SearchScope</span> OneLevel `
+       <span class="c-par">-ErrorAction</span> SilentlyContinue)) {
+
+      <span class="c-key">New-ADOrganizationalUnit</span> `
+           <span class="c-par">-Name</span> <span class="c-var">$_</span> `
+           <span class="c-par">-Path</span> <span class="c-var">$AdminsOU</span> `
+          <span class="c-par">-ProtectedFromAccidentalDeletion</span> <span class="c-var">$true</span>
+   }
+}
+
+<span class="c-cmt"># identical shape, aimed at $ComputersOU</span>
+<span class="c-str">"Workstations"</span>, <span class="c-str">"Servers"</span>, <span class="c-str">"Quarantine"</span> | <span class="c-key">ForEach-Object</span> { ... }
+
+<span class="c-cmt"># three levels deep — build the address first, then the two city OUs</span>
+<span class="c-var">$WorkstationsOU</span> = <span class="c-str">"OU=Workstations,<span class="c-var">$ComputersOU</span>"</span>
+<span class="c-str">"Sydney"</span>, <span class="c-str">"Melbourne"</span> | <span class="c-key">ForEach-Object</span> { ... }
+
+<span class="c-cmt"># and the two group OUs — see the AGDLP note in Part 7</span>
+<span class="c-str">"Role Groups"</span>, <span class="c-str">"Resource Groups"</span> | <span class="c-key">ForEach-Object</span> { ... }</code></pre></div>
+          </div>
+        </div>
+      </details>
+
+      <div class="cmd">
+        <p><strong>Checkpoint.</strong> Sorting by DistinguishedName makes children appear directly under their parents, so the structure reads in order.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADOrganizationalUnit</span> `
+   <span class="c-par">-Filter</span> * `
+   <span class="c-par">-SearchBase</span> <span class="c-var">$DomainDN</span> |
+   <span class="c-key">Sort-Object</span> DistinguishedName |
+   <span class="c-key">Format-Table</span> Name, DistinguishedName</code></pre></div>
+      </div>
+    </section>
+
+    <!-- ============ PART 5 ============ -->
+    <section class="part" id="p5">
+      <div class="part-head">
+        <span class="part-num">05</span>
+        <div>
+          <h2>Defaults &amp; password policy</h2>
+          <p class="sub">Two commands that quietly fix a real problem.</p>
+        </div>
+      </div>
+
+      <p class="lede">
+        Out of the box, anything joining the domain lands in the built-in
+        <strong>Computers</strong> and <strong>Users</strong> containers. Those are
+        <em>containers</em>, not OUs — and <strong>you cannot link Group Policy to them.</strong>
+        So anything landing there gets none of your policy. These two commands fix that
+        permanently.
+      </p>
+
+      <div class="cmd">
+        <p>New machines joining the domain now land in your Workstations OU; new users in your LAB-Users OU.</p>
+        <div class="codewrap"><pre><code>redircmp <span class="c-str">"OU=Workstations,OU=LAB-Computers,<span class="c-var">$DomainDN</span>"</span>
+
+redirusr <span class="c-str">"OU=LAB-Users,<span class="c-var">$DomainDN</span>"</span>
+
+<span class="c-cmt"># confirm — these two fields should now show YOUR OUs</span>
+<span class="c-key">Get-ADDomain</span> |
+   <span class="c-key">Select-Object</span> UsersContainer, ComputersContainer</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>Ask for a password once and hold it in memory. <code>-AsSecureString</code> hides it as you type and keeps it encrypted, instead of sitting in the script as plain text.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$InitialPassword</span> = <span class="c-key">Read-Host</span> `
+   <span class="c-str">"Enter an initial password for the sample users"</span> `
+   <span class="c-par">-AsSecureString</span>
+
+<span class="c-key">Get-ADDefaultDomainPasswordPolicy</span></code></pre></div>
+      </div>
+
+      <div class="note">
+        <b>Check the policy before you create users</b>
+        <p>If your chosen password fails the domain's length or complexity rules,
+        <span class="mono">New-ADUser</span> rejects it — and the error message doesn't make it
+        obvious that the password was the problem.</p>
+      </div>
+    </section>
+
+    <!-- ============ PART 6 ============ -->
+    <section class="part" id="p6">
+      <div class="part-head">
+        <span class="part-num">06</span>
+        <div>
+          <h2>Users — create the people</h2>
+          <p class="sub">Data separated from logic: a list, then one loop that reads it.</p>
+        </div>
+      </div>
+
+      <p class="lede">
+        To add a person you add a block to the list and re-run. You never touch the creation
+        code — which is the whole reason it's built this way.
+      </p>
+
+      <div class="cmd">
+        <p>Each <code>@{ }</code> is one person, like one row of a spreadsheet. <strong>SamAccountName</strong> is the login name; <strong>OU</strong> is which folder they get filed into.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$Users</span> = @(
+   @{
+       GivenName       = <span class="c-str">"Sarah"</span>
+       Surname         = <span class="c-str">"Malik"</span>
+      SamAccountName  = <span class="c-str">"sarah.malik"</span>
+      Department      = <span class="c-str">"Finance"</span>
+       Title           = <span class="c-str">"Senior Accountant"</span>
+       Office          = <span class="c-str">"Sydney"</span>
+      EmployeeID      = <span class="c-str">"LAB1001"</span>
+       OU              = <span class="c-str">"OU=Finance,<span class="c-var">$UsersOU</span>"</span>
+   },
+   <span class="c-cmt"># ... james.wong, priya.sharma, daniel.nguyen,</span>
+   <span class="c-cmt">#     emily.taylor, michael.chen, alex.contractor</span>
+)</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>Create each one, skipping any that already exist. The <code>$( )</code> lets you drop a property inside a string.</p>
+        <div class="codewrap"><pre><code><span class="c-key">foreach</span> (<span class="c-var">$User</span> <span class="c-key">in</span> <span class="c-var">$Users</span>) {
+   <span class="c-var">$ExistingUser</span> = <span class="c-key">Get-ADUser</span> `
+       <span class="c-par">-Filter</span> <span class="c-str">"SamAccountName -eq '<span class="c-var">$($User.SamAccountName)</span>'"</span> `
+       <span class="c-par">-ErrorAction</span> SilentlyContinue
+
+   <span class="c-key">if</span> (<span class="c-par">-not</span> <span class="c-var">$ExistingUser</span>) {
+       <span class="c-var">$DisplayName</span> = <span class="c-str">"<span class="c-var">$($User.GivenName)</span> <span class="c-var">$($User.Surname)</span>"</span>
+       <span class="c-var">$UPN</span> = <span class="c-str">"<span class="c-var">$($User.SamAccountName)</span>@<span class="c-var">$DomainName</span>"</span>
+
+       <span class="c-key">New-ADUser</span> `
+           <span class="c-par">-Name</span> <span class="c-var">$DisplayName</span> `
+          <span class="c-par">-DisplayName</span> <span class="c-var">$DisplayName</span> `
+           <span class="c-par">-GivenName</span> <span class="c-var">$User</span>.GivenName `
+           <span class="c-par">-Surname</span> <span class="c-var">$User</span>.Surname `
+          <span class="c-par">-SamAccountName</span> <span class="c-var">$User</span>.SamAccountName `
+          <span class="c-par">-UserPrincipalName</span> <span class="c-var">$UPN</span> `
+          <span class="c-par">-Department</span> <span class="c-var">$User</span>.Department `
+           <span class="c-par">-Title</span> <span class="c-var">$User</span>.Title `
+           <span class="c-par">-Office</span> <span class="c-var">$User</span>.Office `
+          <span class="c-par">-EmployeeID</span> <span class="c-var">$User</span>.EmployeeID `
+           <span class="c-par">-Path</span> <span class="c-var">$User</span>.OU `
+          <span class="c-par">-AccountPassword</span> <span class="c-var">$InitialPassword</span> `
+           <span class="c-par">-Enabled</span> <span class="c-var">$true</span> `
+          <span class="c-par">-ChangePasswordAtLogon</span> <span class="c-var">$true</span>
+   }
+}</code></pre></div>
+      </div>
+
+      <div class="note">
+        <b>Always set ChangePasswordAtLogon</b>
+        <p>It forces a new password on first sign-in, so you never know the user's real one.
+        That's the difference between issuing a credential and sharing one.</p>
+      </div>
+
+      <div class="cmd">
+        <p>Checkpoint. <code>-Properties</code> is needed because AD only returns a few fields by default — Department, Title, Office and EmployeeID have to be asked for explicitly.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADUser</span> `
+   <span class="c-par">-Filter</span> * `
+   <span class="c-par">-SearchBase</span> <span class="c-var">$UsersOU</span> `
+   <span class="c-par">-Properties</span> Department, Title, Office, EmployeeID |
+   <span class="c-key">Select-Object</span> Name, SamAccountName, Department, Title, Office, Enabled |
+   <span class="c-key">Sort-Object</span> Department, Name |
+   <span class="c-key">Format-Table</span> <span class="c-par">-AutoSize</span></code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>Set the org chart. <code>-Manager</code> needs the manager's actual AD object, not a name string — so fetch them into a variable first.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$James</span> = <span class="c-key">Get-ADUser</span> <span class="c-str">"james.wong"</span>
+
+<span class="c-key">Set-ADUser</span> `
+    <span class="c-par">-Identity</span> <span class="c-str">"sarah.malik"</span> `
+    <span class="c-par">-Manager</span> <span class="c-var">$James</span>
+
+<span class="c-cmt"># prove it stuck — Manager isn't returned by default, so ask for it</span>
+<span class="c-var">$Sarah</span> = <span class="c-key">Get-ADUser</span> <span class="c-str">"sarah.malik"</span> <span class="c-par">-Properties</span> Manager
+
+<span class="c-key">Get-ADUser</span> <span class="c-var">$Sarah</span>.Manager |
+   <span class="c-key">Select-Object</span> Name, SamAccountName, Title</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>Daniel's <em>second</em> account, for admin work only. Note <code>-Path</code> puts it in Tier-1, away from the regular staff.</p>
+        <div class="codewrap"><pre><code><span class="c-key">New-ADUser</span> `
+   <span class="c-par">-Name</span> <span class="c-str">"Daniel Nguyen - Server Admin"</span> `
+   <span class="c-par">-SamAccountName</span> <span class="c-str">"adm-daniel.nguyen"</span> `
+   <span class="c-par">-UserPrincipalName</span> <span class="c-str">"adm-daniel.nguyen@<span class="c-var">$DomainName</span>"</span> `
+   <span class="c-par">-Description</span> <span class="c-str">"Dedicated Tier 1 server administration account"</span> `
+   <span class="c-par">-Path</span> <span class="c-str">"OU=Tier-1,<span class="c-var">$AdminsOU</span>"</span> `
+   <span class="c-par">-AccountPassword</span> <span class="c-var">$AdminPassword</span> `
+   <span class="c-par">-Enabled</span> <span class="c-var">$true</span> `
+  <span class="c-par">-ChangePasswordAtLogon</span> <span class="c-var">$true</span></code></pre></div>
+      </div>
+
+      <div class="note">
+        <b>Why two accounts for one person</b>
+        <p>You do your day job — email, browsing — as your normal account, and only use the
+        <span class="mono">adm-</span> account when you actually need the extra rights. If the
+        daily account gets phished, the attacker gets a normal user, not an admin.</p>
+      </div>
+    </section>
+
+    <!-- ============ PART 7 ============ -->
+    <section class="part" id="p7">
+      <div class="part-head">
+        <span class="part-num">07</span>
+        <div>
+          <h2>Groups — create them, then fill them</h2>
+          <p class="sub">Built entirely around one model. Learn the model and the rest is obvious.</p>
+        </div>
+      </div>
+
+      <figure>
+        <div class="agdlp">
+          <svg viewBox="0 0 700 150" role="img" aria-label="AGDLP: an account goes into a global group, which goes into a domain local group, which holds the permission on the resource.">
+            <defs>
+              <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+              </marker>
+            </defs>
+            <g font-family="Archivo, sans-serif" font-size="12" color="currentColor">
+              <!-- nodes -->
+              <g>
+                <rect x="2" y="38" width="126" height="52" rx="7" fill="none" stroke="currentColor" stroke-opacity=".35"/>
+                <text x="65" y="60" text-anchor="middle" font-size="10" letter-spacing="1.4" fill="currentColor" fill-opacity=".55">A · ACCOUNT</text>
+                <text x="65" y="78" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">sarah.malik</text>
+              </g>
+              <g>
+                <rect x="160" y="38" width="152" height="52" rx="7" fill="none" stroke="currentColor" stroke-opacity=".35"/>
+                <text x="236" y="60" text-anchor="middle" font-size="10" letter-spacing="1.4" fill="currentColor" fill-opacity=".55">G · GLOBAL</text>
+                <text x="236" y="78" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">GG-Finance-Employees</text>
+              </g>
+              <g>
+                <rect x="344" y="38" width="164" height="52" rx="7" fill="none" stroke="currentColor" stroke-opacity=".35"/>
+                <text x="426" y="60" text-anchor="middle" font-size="10" letter-spacing="1.4" fill="currentColor" fill-opacity=".55">DL · DOMAIN LOCAL</text>
+                <text x="426" y="78" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">DL-FinanceShare-Modify</text>
+              </g>
+              <g>
+                <rect x="540" y="38" width="158" height="52" rx="7" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-dasharray="3 3"/>
+                <text x="619" y="60" text-anchor="middle" font-size="10" letter-spacing="1.4" fill="currentColor" fill-opacity=".55">P · PERMISSION</text>
+                <text x="619" y="78" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">Modify on the share</text>
+              </g>
+              <!-- arrows -->
+              <g stroke="currentColor" stroke-width="1.3" stroke-opacity=".55" marker-end="url(#ar)" fill="none">
+                <line x1="132" y1="64" x2="154" y2="64"/>
+                <line x1="316" y1="64" x2="338" y2="64"/>
+                <line x1="512" y1="64" x2="534" y2="64"/>
+              </g>
+              <g font-size="10" fill="currentColor" fill-opacity=".5" text-anchor="middle">
+                <text x="143" y="112">goes into</text>
+                <text x="327" y="112">goes into</text>
+                <text x="523" y="112">granted</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <figcaption>AGDLP — the chain every permission in this lab follows</figcaption>
+      </figure>
+
+      <p class="lede">
+        <strong>You never give a permission to a person.</strong> When someone joins Finance you
+        add them to one group and they inherit everything. When the share's permissions change
+        you edit one group, not fifty users.
+      </p>
+
+      <div class="note">
+        <b>Group scopes — the bit that trips people up</b>
+        <p><strong>Global</strong> holds users from <em>this</em> domain. Use it for "who you are".<br>
+        <strong>Domain Local</strong> grants access to a resource in <em>this</em> domain. Use it for "what you can reach".<br>
+        <strong>Universal</strong> spans the whole forest. Use it across multiple domains.</p>
+        <p>Separately, <strong>Security</strong> groups can be given permissions;
+        <strong>Distribution</strong> groups are email lists only.</p>
+      </div>
+
+      <div class="cmd">
+        <p>The role groups — the "G" of AGDLP. The <code>GG-</code> prefix means anyone reading the list instantly knows the scope.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$GlobalGroups</span> = @(
+    @{ Name = <span class="c-str">"GG-Finance-Employees"</span>;         Description = <span class="c-str">"All Finance employees"</span> },
+    @{ Name = <span class="c-str">"GG-HR-Employees"</span>;              Description = <span class="c-str">"All Human Resources employees"</span> },
+    @{ Name = <span class="c-str">"GG-IT-Employees"</span>;              Description = <span class="c-str">"All Information Technology employees"</span> },
+    @{ Name = <span class="c-str">"GG-Sales-Employees"</span>;           Description = <span class="c-str">"All Sales employees"</span> },
+    @{ Name = <span class="c-str">"GG-Sydney-Users"</span>;              Description = <span class="c-str">"Users based in Sydney"</span> },
+    @{ Name = <span class="c-str">"GG-Melbourne-Users"</span>;           Description = <span class="c-str">"Users based in Melbourne"</span> },
+    @{ Name = <span class="c-str">"GG-Server-Administrators"</span>;     Description = <span class="c-str">"Tier 1 server administrators"</span> },
+    @{ Name = <span class="c-str">"GG-Helpdesk-Password-Reset"</span>;   Description = <span class="c-str">"Delegated password resets"</span> },
+    @{ Name = <span class="c-str">"GG-Privileged-Password-Policy"</span>; Description = <span class="c-str">"Privileged password policy"</span> }
+)
+
+<span class="c-key">foreach</span> (<span class="c-var">$Group</span> <span class="c-key">in</span> <span class="c-var">$GlobalGroups</span>) {
+    <span class="c-key">if</span> (<span class="c-par">-not</span> (<span class="c-key">Get-ADGroup</span> `
+        <span class="c-par">-Filter</span> <span class="c-str">"Name -eq '<span class="c-var">$($Group.Name)</span>'"</span> `
+        <span class="c-par">-ErrorAction</span> SilentlyContinue)) {
+
+        <span class="c-key">New-ADGroup</span> `
+            <span class="c-par">-Name</span> <span class="c-var">$Group</span>.Name `
+            <span class="c-par">-SamAccountName</span> <span class="c-var">$Group</span>.Name `
+            <span class="c-par">-GroupCategory</span> Security `
+            <span class="c-par">-GroupScope</span> Global `
+            <span class="c-par">-Path</span> <span class="c-var">$RoleGroupsOU</span> `
+            <span class="c-par">-Description</span> <span class="c-var">$Group</span>.Description
+    }
+}</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>Now the "A" — put the accounts into the global groups. People end up in <em>both</em> a department group and a site group. That's the point: they stack.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Add-ADGroupMember</span> `
+   <span class="c-par">-Identity</span> <span class="c-str">"GG-Finance-Employees"</span> `
+   <span class="c-par">-Members</span> <span class="c-str">"sarah.malik"</span>, <span class="c-str">"james.wong"</span>
+
+<span class="c-key">Add-ADGroupMember</span> `
+   <span class="c-par">-Identity</span> <span class="c-str">"GG-Sydney-Users"</span> `
+   <span class="c-par">-Members</span> <span class="c-str">"sarah.malik"</span>, <span class="c-str">"james.wong"</span>,
+           <span class="c-str">"daniel.nguyen"</span>, <span class="c-str">"michael.chen"</span>,
+           <span class="c-str">"alex.contractor"</span>
+
+<span class="c-cmt"># ...and the same for HR, IT, Sales, Melbourne and Server-Administrators</span></code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>Three ways to ask about membership, and they don't give the same answer.</p>
+        <div class="codewrap"><pre><code><span class="c-cmt"># who is DIRECTLY in this group?</span>
+<span class="c-key">Get-ADGroupMember</span> <span class="c-str">"GG-Finance-Employees"</span>
+
+<span class="c-cmt"># same, but expand any groups nested inside it</span>
+<span class="c-key">Get-ADGroupMember</span> <span class="c-par">-Identity</span> <span class="c-str">"GG-Finance-Employees"</span> <span class="c-par">-Recursive</span>
+
+<span class="c-cmt"># the reverse: what groups is this PERSON in?</span>
+<span class="c-key">Get-ADPrincipalGroupMembership</span> <span class="c-str">"sarah.malik"</span> |
+   <span class="c-key">Select-Object</span> Name, GroupScope |
+   <span class="c-key">Sort-Object</span> Name
+
+<span class="c-cmt"># the best one: every level of nesting, plus built-ins.</span>
+<span class="c-cmt"># this is what the user's access ACTUALLY is.</span>
+<span class="c-key">Get-ADAccountAuthorizationGroup</span> <span class="c-str">"sarah.malik"</span> |
+   <span class="c-key">Select-Object</span> Name, GroupScope |
+   <span class="c-key">Sort-Object</span> Name</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>The "DL" step — put the <em>global groups</em> into <em>domain local groups</em>. Note the members here are groups, not people.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Add-ADGroupMember</span> `
+   <span class="c-par">-Identity</span> <span class="c-str">"DL-FinanceShare-Modify"</span> `
+   <span class="c-par">-Members</span> <span class="c-str">"GG-Finance-Employees"</span>
+
+<span class="c-key">Add-ADGroupMember</span> `
+   <span class="c-par">-Identity</span> <span class="c-str">"DL-FinanceShare-Read"</span> `
+   <span class="c-par">-Members</span> <span class="c-str">"GG-IT-Employees"</span></code></pre></div>
+      </div>
+
+      <div class="note warn">
+        <b>These two groups are never created</b>
+        <p>Nothing in the script runs <span class="mono">New-ADGroup</span> for
+        <span class="mono">DL-FinanceShare-Modify</span> or
+        <span class="mono">DL-FinanceShare-Read</span>, so both lines above fail with
+        "Cannot find an object with identity". Add this first:</p>
+        <pre><code><span class="c-key">New-ADGroup</span> <span class="c-par">-Name</span> <span class="c-str">"DL-FinanceShare-Modify"</span> `
+    <span class="c-par">-SamAccountName</span> <span class="c-str">"DL-FinanceShare-Modify"</span> `
+    <span class="c-par">-GroupCategory</span> Security <span class="c-par">-GroupScope</span> DomainLocal `
+    <span class="c-par">-Path</span> <span class="c-var">$ResourceGroupsOU</span></code></pre>
+        <p style="margin-top:9px"><span class="mono">$ResourceGroupsOU</span> is defined at the top
+        of this part and otherwise never used — this is what it was for.</p>
+      </div>
+    </section>
+
+    <!-- ============ PART 8 ============ -->
+    <section class="part" id="p8">
+      <div class="part-head">
+        <span class="part-num">08</span>
+        <div>
+          <h2>Computers — the machine accounts</h2>
+          <p class="sub">Every computer that joins a domain gets an account, exactly like a user.</p>
+        </div>
+      </div>
+
+      <p class="lede">
+        Pre-creating them — "staging" — means the machine lands in the right OU and gets the
+        right Group Policy from its very first boot, instead of appearing in the default
+        container and having to be moved afterwards.
+      </p>
+
+      <div class="cmd">
+        <p>The machine list, same spreadsheet-row shape as the users. The naming convention is <strong>SITE-OS-NUMBER</strong>, so <code>SYD-WIN11-01</code> reads at a glance.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$Computers</span> = @(
+    @{ Name = <span class="c-str">"SYD-WIN11-01"</span>; Path = <span class="c-var">$SydneyWorkstationsOU</span>;    Description = <span class="c-str">"Sydney Windows 11 lab workstation"</span> },
+    @{ Name = <span class="c-str">"SYD-WIN11-02"</span>; Path = <span class="c-var">$SydneyWorkstationsOU</span>;    Description = <span class="c-str">"Sydney Windows 11 lab workstation"</span> },
+    @{ Name = <span class="c-str">"MEL-WIN11-01"</span>; Path = <span class="c-var">$MelbourneWorkstationsOU</span>; Description = <span class="c-str">"Melbourne Windows 11 lab workstation"</span> },
+    @{ Name = <span class="c-str">"LAB-SRV01"</span>;    Path = <span class="c-var">$ServersOU</span>;              Description = <span class="c-str">"Lab member and file server"</span> },
+    @{ Name = <span class="c-str">"LAB-APP01"</span>;    Path = <span class="c-var">$ServersOU</span>;              Description = <span class="c-str">"Lab application server"</span> }
+)
+
+<span class="c-key">foreach</span> (<span class="c-var">$Computer</span> <span class="c-key">in</span> <span class="c-var">$Computers</span>) {
+    <span class="c-key">if</span> (<span class="c-par">-not</span> (<span class="c-key">Get-ADComputer</span> `
+        <span class="c-par">-Filter</span> <span class="c-str">"Name -eq '<span class="c-var">$($Computer.Name)</span>'"</span> `
+        <span class="c-par">-ErrorAction</span> SilentlyContinue)) {
+
+        <span class="c-key">New-ADComputer</span> `
+            <span class="c-par">-Name</span> <span class="c-var">$Computer</span>.Name `
+            <span class="c-par">-SamAccountName</span> <span class="c-str">"<span class="c-var">$($Computer.Name)</span>$"</span> `
+            <span class="c-par">-Path</span> <span class="c-var">$Computer</span>.Path `
+            <span class="c-par">-Description</span> <span class="c-var">$Computer</span>.Description `
+            <span class="c-par">-Enabled</span> <span class="c-var">$true</span>
+    }
+}</code></pre></div>
+      </div>
+
+      <div class="note">
+        <b>Don't drop the trailing dollar sign</b>
+        <p>The <span class="mono">$</span> at the end of
+        <span class="mono">-SamAccountName "$($Computer.Name)$"</span> is required — that trailing
+        dollar is how AD marks an account as a computer rather than a person.</p>
+      </div>
+    </section>
+
+    <!-- ============ PART 9 ============ -->
+    <section class="part" id="p9">
+      <div class="part-head">
+        <span class="part-num">09</span>
+        <div>
+          <h2>Group Policy — the rules pushed out to machines</h2>
+          <p class="sub">This is why the OUs in Part 4 were worth building.</p>
+        </div>
+      </div>
+
+      <p class="lede">
+        A <strong>GPO</strong> is a bundle of settings. You link it to an OU, and every computer
+        or user inside that OU picks it up automatically — at boot or logon, then re-checked
+        roughly every 90 minutes.
+      </p>
+
+      <div class="note">
+        <b>Three steps, always this order</b>
+        <p><strong>1. Create</strong> — <span class="mono">New-GPO</span>, an empty bundle.<br>
+        <strong>2. Link</strong> — <span class="mono">New-GPLink</span>, decides who gets it.<br>
+        <strong>3. Fill</strong> — <span class="mono">Set-GPRegistryValue</span>, what it does.</p>
+        <p>A GPO with no link does nothing. A link with no settings does nothing. You need all three.</p>
+      </div>
+
+      <div class="cmd">
+        <p>Name it once and reuse. The convention <code>LAB - &lt;what it does&gt;</code> keeps a long GPO list readable — and fill in <code>-Comment</code>, because a GPO called "Baseline" with no description is useless to whoever inherits it.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$WorkstationGPO</span> = <span class="c-str">"LAB - Workstation Security Baseline"</span>
+
+<span class="c-key">if</span> (<span class="c-par">-not</span> (<span class="c-key">Get-GPO</span> `
+    <span class="c-par">-Name</span> <span class="c-var">$WorkstationGPO</span> `
+    <span class="c-par">-ErrorAction</span> SilentlyContinue)) {
+
+    <span class="c-key">New-GPO</span> `
+        <span class="c-par">-Name</span> <span class="c-var">$WorkstationGPO</span> `
+        <span class="c-par">-Comment</span> <span class="c-str">"Basic workstation security settings for the AD lab"</span>
+}</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>Link it to the Workstations OU, so machines in both Sydney and Melbourne pick it up — links flow <em>down</em> into child OUs.</p>
+        <div class="codewrap"><pre><code><span class="c-key">if</span> (<span class="c-par">-not</span> (<span class="c-key">Get-GPInheritance</span> `
+   <span class="c-par">-Target</span> <span class="c-var">$WorkstationsOU</span>).GpoLinks |
+   <span class="c-key">Where-Object</span> DisplayName <span class="c-par">-eq</span> <span class="c-var">$WorkstationGPO</span>) {
+
+   <span class="c-key">New-GPLink</span> `
+       <span class="c-par">-Name</span> <span class="c-var">$WorkstationGPO</span> `
+       <span class="c-par">-Target</span> <span class="c-var">$WorkstationsOU</span> `
+       <span class="c-par">-LinkEnabled</span> Yes
+}</code></pre></div>
+      </div>
+
+      <div class="note warn">
+        <b>This if-statement does not work</b>
+        <p>The brackets are misplaced. <span class="mono">-not</span> is applied to
+        <span class="mono">.GpoLinks</span> first, and the true/false that comes out is then piped
+        into <span class="mono">Where-Object</span>, which can't match anything. The result is
+        always empty, empty counts as false, so <strong><span class="mono">New-GPLink</span> never
+        runs.</strong> No error — just no link, and the GPO does nothing at all.</p>
+        <p>The whole pipeline has to sit inside <span class="mono">-not ( )</span>:</p>
+        <pre><code><span class="c-key">if</span> (<span class="c-par">-not</span> ((<span class="c-key">Get-GPInheritance</span> <span class="c-par">-Target</span> <span class="c-var">$WorkstationsOU</span>).GpoLinks |
+    <span class="c-key">Where-Object</span> DisplayName <span class="c-par">-eq</span> <span class="c-var">$WorkstationGPO</span>)) {</code></pre>
+        <p style="margin-top:9px">Check afterwards with
+        <span class="mono">Get-GPInheritance -Target $WorkstationsOU</span>. If the link isn't
+        listed, this is why.</p>
+      </div>
+
+      <div class="cmd">
+        <p><strong>The settings.</strong> <code>Set-GPRegistryValue</code> writes a registry key into the GPO; every machine the GPO applies to then gets that key. <code>HKLM</code> means a <em>computer</em> setting — it applies no matter who signs in.</p>
+        <div class="codewrap"><pre><code><span class="c-cmt"># turn off AutoRun on every drive type. 255 covers all drive</span>
+<span class="c-cmt"># letters including USB — a classic malware entry point.</span>
+<span class="c-key">Set-GPRegistryValue</span> `
+   <span class="c-par">-Name</span> <span class="c-var">$WorkstationGPO</span> `
+   <span class="c-par">-Key</span> <span class="c-str">"HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"</span> `
+   <span class="c-par">-ValueName</span> <span class="c-str">"NoDriveTypeAutoRun"</span> `
+   <span class="c-par">-Type</span> DWord `
+   <span class="c-par">-Value</span> 255
+
+<span class="c-cmt"># the other half — AutoPlay for non-volume devices (phones,</span>
+<span class="c-cmt"># cameras, MTP gear), which the setting above doesn't cover.</span>
+<span class="c-key">Set-GPRegistryValue</span> `
+   <span class="c-par">-Name</span> <span class="c-var">$WorkstationGPO</span> `
+   <span class="c-par">-Key</span> <span class="c-str">"HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"</span> `
+   <span class="c-par">-ValueName</span> <span class="c-str">"NoAutoPlayfornonVolume"</span> `
+   <span class="c-par">-Type</span> DWord `
+   <span class="c-par">-Value</span> 1</code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>The logon banner. Caption and Text are a <strong>pair</strong> — set only one and no banner appears at all.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Set-GPRegistryValue</span> `
+   <span class="c-par">-Name</span> <span class="c-var">$WorkstationGPO</span> `
+   <span class="c-par">-Key</span> <span class="c-str">"HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System"</span> `
+   <span class="c-par">-ValueName</span> <span class="c-str">"LegalNoticeCaption"</span> `
+   <span class="c-par">-Type</span> String `
+   <span class="c-par">-Value</span> <span class="c-str">"LAB.LOCAL Authorised Access Only"</span>
+
+<span class="c-key">Set-GPRegistryValue</span> `
+   <span class="c-par">-Name</span> <span class="c-var">$WorkstationGPO</span> `
+   <span class="c-par">-Key</span> <span class="c-str">"HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System"</span> `
+   <span class="c-par">-ValueName</span> <span class="c-str">"LegalNoticeText"</span> `
+   <span class="c-par">-Type</span> String `
+   <span class="c-par">-Value</span> <span class="c-str">"This computer is part of an authorised Active Directory training environment."</span></code></pre></div>
+      </div>
+
+      <div class="note">
+        <b>The banner is a legal control, not a technical one</b>
+        <p>It stops nobody. What it does is remove the "I didn't know I wasn't allowed on here"
+        defence, which is why most hardening standards expect one.</p>
+      </div>
+
+      <div class="cmd">
+        <p>Useful checks once this part is done.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-GPO</span> <span class="c-par">-All</span> | <span class="c-key">Select-Object</span> DisplayName, GpoStatus
+<span class="c-key">Get-GPInheritance</span> <span class="c-par">-Target</span> <span class="c-var">$WorkstationsOU</span>
+<span class="c-key">Get-GPOReport</span> <span class="c-par">-Name</span> <span class="c-var">$WorkstationGPO</span> <span class="c-par">-ReportType</span> Html <span class="c-par">-Path</span> <span class="c-str">"C:\gpo.html"</span>
+
+gpupdate /force        <span class="c-cmt"># on the CLIENT, to pull policy down now</span></code></pre></div>
+      </div>
+    
+      <h3 style="font-family:Archivo,sans-serif;font-size:15px;margin:34px 0 4px;letter-spacing:.01em">9b &middot; A second GPO, for users this time</h3>
+      <p class="lede">
+        The GPO above used <code>HKLM</code> &mdash; a <strong>computer</strong> setting, applied
+        to the machine whoever signs in. This one uses <code>HKCU</code>, a <strong>user</strong>
+        setting that follows the person to whatever machine they use. That difference is
+        what decides which OU you link it to.
+      </p>
+
+      <div class="cmd">
+        <p>Same create-and-link shape, pointed at the users OU instead.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$UserGPO</span> = <span class="c-str">"LAB - User Session Security"</span>
+
+<span class="c-key">if</span> (<span class="c-par">-not</span> (<span class="c-key">Get-GPO</span> <span class="c-par">-Name</span> <span class="c-var">$UserGPO</span> <span class="c-par">-ErrorAction</span> SilentlyContinue)) {
+    <span class="c-key">New-GPO</span> `
+        <span class="c-par">-Name</span> <span class="c-var">$UserGPO</span> `
+        <span class="c-par">-Comment</span> <span class="c-str">"User session and screen lock settings"</span>
+}
+
+<span class="c-key">New-GPLink</span> `
+   <span class="c-par">-Name</span> <span class="c-var">$UserGPO</span> `
+   <span class="c-par">-Target</span> <span class="c-var">$UsersOU</span> `
+   <span class="c-par">-LinkEnabled</span> Yes</code></pre></div>
+      </div>
+
+      <div class="note warn">
+        <b>Missing dollar sign</b>
+        <p>In the class notes this was written <span class="mono">UserGPO = "LAB - User
+        Session Security"</span> with no <span class="mono">$</span>. PowerShell reads that
+        as a <em>command</em> called UserGPO, so <span class="mono">$UserGPO</span> stays
+        empty and every command after it quietly targets nothing.</p>
+      </div>
+
+      <div class="cmd">
+        <p>Screen lock &mdash; three settings that only work as a set. All three are <code>-Type String</code>, even the number, because the registry stores them as text.</p>
+        <div class="codewrap"><pre><code><span class="c-cmt"># ScreenSaveActive    turn it on at all</span>
+<span class="c-cmt"># ScreenSaverIsSecure require the password to get back in  &lt;- the security bit</span>
+<span class="c-cmt"># ScreenSaveTimeOut   idle seconds before it kicks in (600 = 10 minutes)</span>
+<span class="c-key">Set-GPRegistryValue</span> `
+   <span class="c-par">-Name</span> <span class="c-var">$UserGPO</span> `
+   <span class="c-par">-Key</span> <span class="c-str">"HKCU\Software\Policies\Microsoft\Windows\Control Panel\Desktop"</span> `
+   <span class="c-par">-ValueName</span> <span class="c-str">"ScreenSaverIsSecure"</span> `
+   <span class="c-par">-Type</span> String `
+   <span class="c-par">-Value</span> <span class="c-str">"1"</span></code></pre></div>
+      </div>
+    </section>
+
+    <!-- ============ PART 10 ============ -->
+    <section class="part" id="p10">
+      <div class="part-head">
+        <span class="part-num">10</span>
+        <div>
+          <h2>File share &amp; NTFS permissions</h2>
+          <p class="sub">The "P" of AGDLP finally arriving — the actual permission.</p>
+        </div>
+      </div>
+
+      <p class="lede">
+        Everything up to now lived inside AD. This is the thing AD has been protecting: a real
+        folder on the server's disk. Order matters — folder first, then break inheritance, then
+        assign the DL groups.
+      </p>
+
+      <div class="cmd">
+        <p><code>-Force</code> means don't error if it already exists, and create any missing parent folders on the way.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$FinancePath</span> = <span class="c-str">"C:\LabShares\Finance"</span>
+
+<span class="c-key">New-Item</span> `
+   <span class="c-par">-Path</span> <span class="c-var">$FinancePath</span> `
+   <span class="c-par">-ItemType</span> Directory `
+   <span class="c-par">-Force</span></code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p><code>icacls</code> is the built-in tool for NTFS permissions — a legacy .exe, but still the standard way to do this.</p>
+        <div class="codewrap"><pre><code>icacls <span class="c-var">$FinancePath</span> /inheritance:d</code></pre></div>
+      </div>
+
+      <div class="note">
+        <b>Why <span class="mono">:d</span> and not <span class="mono">:r</span></b>
+        <p>By default a folder inherits permissions from its parent, so anything set higher up
+        flows in. <span class="mono">/inheritance:d</span> <strong>disables</strong> inheritance but
+        <strong>copies</strong> the current permissions down first, so they become explicit on this
+        folder.</p>
+        <p><span class="mono">/inheritance:r</span> <em>removes</em> them instead — and can lock you
+        out of your own folder. Reach for <span class="mono">:d</span>.</p>
+      </div>
+
+      <div class="cmd">
+        <p>Next step, once the DL groups from Part 7 actually exist: grant them. <code>(OI)(CI)</code> means apply to files and subfolders too; <code>M</code> is Modify, <code>RX</code> is Read + Execute.</p>
+        <div class="codewrap"><pre><code>icacls <span class="c-var">$FinancePath</span> /grant <span class="c-str">"DL-FinanceShare-Modify:(OI)(CI)M"</span>
+icacls <span class="c-var">$FinancePath</span> /grant <span class="c-str">"DL-FinanceShare-Read:(OI)(CI)RX"</span></code></pre></div>
+      </div>
+    </section>
+
+    <!-- ============ PART 11 ============ -->
+    
+    <section class="part" id="p11">
+      <div class="part-head">
+        <span class="part-num">11</span>
+        <div>
+          <h2>Account lifecycle</h2>
+          <p class="sub">What actually happens to accounts day to day.</p>
+        </div>
+      </div>
+      <p class="lede">
+        The golden rule for a leaver: <strong>disable and move, never delete.</strong>
+        Deleting destroys the SID &mdash; and every file permission and group membership in
+        the domain points at that SID, not at the name. Recreating &ldquo;the same&rdquo;
+        account gives you a new SID and none of the old access comes back.
+      </p>
+      <div class="cmd">
+        <p>A contractor finishes: turn the account off, file it in the parking OU, and record <em>why</em>.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Disable-ADAccount</span> <span class="c-par">-Identity</span> <span class="c-str">"alex.contractor"</span>
+
+<span class="c-key">Get-ADUser</span> <span class="c-str">"alex.contractor"</span> |
+    <span class="c-key">Move-ADObject</span> <span class="c-par">-TargetPath</span> <span class="c-str">"OU=Disabled Users,$UsersOU"</span>
+
+<span class="c-key">Set-ADUser</span> `
+    <span class="c-par">-Identity</span> <span class="c-str">"alex.contractor"</span> `
+    <span class="c-par">-Description</span> <span class="c-str">"Contract completed; account disabled for lab exercise"</span></code></pre></div>
+      </div>
+      <div class="cmd">
+        <p>An expiry date is better than remembering to disable them yourself.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Set-ADAccountExpiration</span> `
+    <span class="c-par">-Identity</span> <span class="c-str">"alex.contractor"</span> `
+    <span class="c-par">-DateTime</span> (<span class="c-key">Get-Date</span>).AddDays(30)
+
+<span class="c-key">Clear-ADAccountExpiration</span> <span class="c-par">-Identity</span> <span class="c-str">"alex.contractor"</span></code></pre></div>
+      </div>
+      <div class="cmd">
+        <p>Password reset. <code>-Reset</code> means &ldquo;just set it, don&rsquo;t ask for the old one&rdquo; &mdash; the helpdesk operation, as opposed to a user changing their own.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Set-ADAccountPassword</span> `
+    <span class="c-par">-Identity</span> <span class="c-str">"sarah.malik"</span> `
+    <span class="c-par">-Reset</span> `
+    <span class="c-par">-NewPassword</span> <span class="c-var">$NewPassword</span>
+
+<span class="c-cmt"># then force a change at next logon, so you never know it</span>
+<span class="c-key">Set-ADUser</span> <span class="c-par">-Identity</span> <span class="c-str">"sarah.malik"</span> <span class="c-par">-ChangePasswordAtLogon</span> <span class="c-var">$true</span></code></pre></div>
+      </div>
+      <div class="note">
+        <b>Locked out is not the same as disabled</b>
+        <p><strong>Locked out</strong> means too many wrong passwords; it clears itself after the lockout window. <strong>Disabled</strong> means an admin deliberately turned it off. Different problems, different fixes.</p>
+      </div>
+      <div class="cmd">
+        <p>Find them in bulk rather than one at a time.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Unlock-ADAccount</span> <span class="c-par">-Identity</span> <span class="c-str">"sarah.malik"</span>
+
+<span class="c-key">Search-ADAccount</span> <span class="c-par">-LockedOut</span>
+<span class="c-key">Search-ADAccount</span> <span class="c-par">-UsersOnly</span> <span class="c-par">-AccountDisabled</span></code></pre></div>
+      </div>
+
+    </section>
+
+    <section class="part" id="p12">
+      <div class="part-head">
+        <span class="part-num">12</span>
+        <div>
+          <h2>Delegation</h2>
+          <p class="sub">Let the helpdesk reset passwords without being Domain Admins.</p>
+        </div>
+      </div>
+      <p class="lede">
+        This is least privilege in practice: give the smallest right that does the job.
+        The group was created back in Part&nbsp;7 &mdash; this is where it finally gets used.
+      </p>
+      <div class="cmd">
+        <p>Add the helpdesk person, then read the ACL on the OU to see who can do what to it.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Add-ADGroupMember</span> `
+    <span class="c-par">-Identity</span> <span class="c-str">"GG-Helpdesk-Password-Reset"</span> `
+    <span class="c-par">-Members</span> <span class="c-str">"daniel.nguyen"</span>
+
+dsacls <span class="c-str">"OU=LAB-Users,$DomainDN"</span>
+
+<span class="c-cmt"># filtered, because the full output is enormous</span>
+dsacls <span class="c-str">"OU=LAB-Users,$DomainDN"</span> |
+    <span class="c-key">Select-String</span> <span class="c-str">"GG-Helpdesk-Password-Reset"</span></code></pre></div>
+      </div>
+      <div class="note">
+        <b>These commands don't grant the right</b>
+        <p>They add the member and <em>read</em> the result. Granting the delegation itself is done in the <strong>Delegation of Control</strong> wizard in ADUC (right-click the OU), or with <span class="mono">dsacls /G</span>. If <span class="mono">Select-String</span> returns nothing, that step hasn't been done yet.</p>
+      </div>
+
+    </section>
+
+    <section class="part" id="p13">
+      <div class="part-head">
+        <span class="part-num">13</span>
+        <div>
+          <h2>gMSA</h2>
+          <p class="sub">A service account whose password nobody ever knows.</p>
+        </div>
+      </div>
+      <p class="lede">
+        Active Directory manages the password itself: 120 characters, rotated every 30 days,
+        never typed by a human. It replaces the old habit of running a service as a normal
+        account with the password sitting in a config file.
+      </p>
+      <div class="note">
+        <b>Run the root key once, and only if you don't have one</b>
+        <p>Check first with <span class="mono">Get-KdsRootKey</span>. Production uses <span class="mono">-EffectiveImmediately</span>; the backdated version below exists because it normally waits 10 hours to replicate, which a single-DC lab doesn't need to sit through.</p><pre><code><span class="c-key">Add-KdsRootKey</span> <span class="c-par">-EffectiveTime</span> ((<span class="c-key">Get-Date</span>).AddHours(-10))</code></pre>
+      </div>
+      <div class="cmd">
+        <p>The group holds <strong>computers</strong>, not people &mdash; that&rsquo;s the whole idea. The trailing <code>$</code> makes it a machine account name, same rule as Part&nbsp;8.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$CurrentComputer</span> = <span class="c-str">"$env:COMPUTERNAME$"</span>
+
+<span class="c-key">Add-ADGroupMember</span> `
+    <span class="c-par">-Identity</span> <span class="c-str">"GG-gMSA-WebHosts"</span> `
+    <span class="c-par">-Members</span> <span class="c-var">$CurrentComputer</span></code></pre></div>
+      </div>
+      <div class="cmd">
+        <p>Create the account. AES128/AES256 only &mdash; the older RC4 is weak.</p>
+        <div class="codewrap"><pre><code><span class="c-key">New-ADServiceAccount</span> `
+    <span class="c-par">-Name</span> <span class="c-str">"gmsa-webapp"</span> `
+    <span class="c-par">-DNSHostName</span> <span class="c-str">"gmsa-webapp.$DomainName"</span> `
+    <span class="c-par">-PrincipalsAllowedToRetrieveManagedPassword</span> <span class="c-str">"GG-gMSA-WebHosts"</span> `
+    <span class="c-par">-KerberosEncryptionType</span> AES128, AES256
+
+<span class="c-cmt"># then, ON the web host itself:</span>
+<span class="c-cmt">#   Install-ADServiceAccount -Identity </span><span class="c-cmt">"gmsa-webapp"</span>
+<span class="c-cmt">#   Test-ADServiceAccount    -Identity </span><span class="c-cmt">"gmsa-webapp"</span></code></pre></div>
+      </div>
+
+    </section>
+
+    <section class="part" id="p14">
+      <div class="part-head">
+        <span class="part-num">14</span>
+        <div>
+          <h2>Querying &amp; troubleshooting</h2>
+          <p class="sub">LDAP filters, and finding out who you actually are.</p>
+        </div>
+      </div>
+      <p class="lede">
+        <code>-Filter</code> is PowerShell syntax. <code>-LDAPFilter</code> is raw LDAP:
+        uglier, far more powerful, and it&rsquo;s what AD actually speaks.
+      </p>
+      <div class="note">
+        <b>Reading an LDAP filter</b>
+        <p><span class="mono">(attribute=value)</span> is one condition. <span class="mono">(&amp;(a=1)(b=2))</span> is AND &mdash; note the <span class="mono">&amp;</span> goes <em>first</em>, not between. <span class="mono">(|...)</span> is OR, <span class="mono">(!...)</span> is NOT.</p>
+      </div>
+      <div class="cmd">
+        <p>Who am I, really? <code>/user</code> shows your SID, <code>/groups</code> every group in your token. <code>klist</code> shows your Kerberos tickets &mdash; stale ones explain a lot of odd &ldquo;access denied&rdquo; behaviour.</p>
+        <div class="codewrap"><pre><code>whoami
+whoami /user
+whoami /groups
+
+klist
+
+<span class="c-cmt"># which DC am I actually talking to?</span>
+nltest /dsgetdc:<span class="c-var">$DomainName</span></code></pre></div>
+      </div>
+      <div class="cmd">
+        <p>Everyone in Finance. Reads as: is a person AND is a user AND department is Finance.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADUser</span> `
+        <span class="c-par">-LDAPFilter</span> <span class="c-str">"(&amp;(objectCategory=person)(objectClass=user)(department=Finance))"</span> `
+        <span class="c-par">-SearchBase</span> <span class="c-var">$UsersOU</span> `
+        <span class="c-par">-Properties</span> Department |
+    <span class="c-key">Select-Object</span> Name, SamAccountName, Department</code></pre></div>
+      </div>
+      <div class="note warn">
+        <b>The three lines that wouldn't run</b>
+        <p>All three LDAP queries in the notes had curly <span class="mono">&ldquo; &rdquo;</span> quotes from a Word or Teams paste. PowerShell only accepts straight <span class="mono">"</span> and throws a parse error on the curly ones. It is the single most common paste problem &mdash; if a pasted command fails for no visible reason, retype the quotes first.</p>
+      </div>
+      <div class="cmd">
+        <p>Every enabled user. That long number is the LDAP bitwise-AND matching rule: bit 2 of <code>userAccountControl</code> is the &ldquo;disabled&rdquo; flag, and <code>(!...)</code> inverts it. Nobody remembers this &mdash; look it up each time.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADUser</span> `
+    <span class="c-par">-LDAPFilter</span> <span class="c-str">"(&amp;(objectCategory=person)(objectClass=user)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))"</span> `
+    <span class="c-par">-SearchBase</span> <span class="c-var">$UsersOU</span></code></pre></div>
+      </div>
+      <div class="note">
+        <b>Why the SID matters more than the name</b>
+        <p>The SID is what permissions are actually written against. That is why deleting an account and recreating it with the same name does <em>not</em> restore its access &mdash; and why Part&nbsp;11 says disable, never delete.</p>
+      </div>
+
+    </section>
+
+    <section class="part" id="p15">
+      <div class="part-head">
+        <span class="part-num">15</span>
+        <div>
+          <h2>Auditing</h2>
+          <p class="sub">If it isn't on before an incident, the evidence doesn't exist.</p>
+        </div>
+      </div>
+      <p class="lede">
+        Auditing is off by default for most of what matters. Turn on success
+        <em>and</em> failure: failures show attacks being attempted, successes show what
+        actually happened.
+      </p>
+      <div class="cmd">
+        <p>Check what&rsquo;s on, then enable the identity subcategories.</p>
+        <div class="codewrap"><pre><code>auditpol /get /category:*
+
+auditpol /set /subcategory:<span class="c-str">"User Account Management"</span>   /success:enable /failure:enable
+auditpol /set /subcategory:<span class="c-str">"Security Group Management"</span> /success:enable /failure:enable
+auditpol /set /subcategory:<span class="c-str">"Logon"</span>                     /success:enable /failure:enable</code></pre></div>
+      </div>
+      <div class="cmd">
+        <p>Make something happen, then go find it. These are the event IDs worth memorising.</p>
+        <div class="codewrap"><pre><code><span class="c-cmt">#  4720 user created   4722 enabled   4725 disabled   4726 deleted</span>
+<span class="c-cmt">#  4728/4729 global group member added/removed</span>
+<span class="c-cmt">#  4732/4733 local  group member added/removed</span>
+<span class="c-key">Get-WinEvent</span> <span class="c-par">-FilterHashtable</span> @{
+        LogName   = <span class="c-str">"Security"</span>
+        StartTime = (<span class="c-key">Get-Date</span>).AddMinutes(-30)
+        Id        = 4720, 4722, 4725, 4726, 4728, 4729, 4732, 4733
+    } |
+    <span class="c-key">Select-Object</span> TimeCreated, Id, Message |
+    <span class="c-key">Format-List</span></code></pre></div>
+      </div>
+      <div class="note warn">
+        <b>Two mistakes in this section</b>
+        <p><span class="mono">-Members "audit. Test"</span> has a stray space and the wrong case, so it can't find the account. And <span class="mono">$InitialPassword</span> is reused here, silently overwriting the secure string from Part&nbsp;5 with a plaintext one &mdash; give it its own variable name.</p>
+      </div>
+
+    </section>
+
+    <section class="part" id="p16">
+      <div class="part-head">
+        <span class="part-num">16</span>
+        <div>
+          <h2>Privileged access review</h2>
+          <p class="sub">Who has the keys, and which accounts are quietly weak.</p>
+        </div>
+      </div>
+      <p class="lede">
+        The single most valuable recurring check in AD. <code>-Recursive</code> matters
+        enormously: someone can be a Domain Admin through three levels of nested groups and
+        never appear in a direct membership list.
+      </p>
+      <div class="cmd">
+        <p>The nine groups worth reviewing. The bottom four surprise people &mdash; each has a path to full control, which is exactly why attackers look there.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$PrivilegedGroups</span> = @(
+    <span class="c-str">"Domain Admins"</span>, <span class="c-str">"Enterprise Admins"</span>, <span class="c-str">"Schema Admins"</span>,
+    <span class="c-str">"Administrators"</span>, <span class="c-str">"Account Operators"</span>, <span class="c-str">"Server Operators"</span>,
+    <span class="c-str">"Backup Operators"</span>, <span class="c-str">"Group Policy Creator Owners"</span>, <span class="c-str">"DnsAdmins"</span>
+)
+
+<span class="c-key">foreach</span> (<span class="c-var">$Group</span> <span class="c-key">in</span> <span class="c-var">$PrivilegedGroups</span>) {
+    <span class="c-key">Write-Host</span> <span class="c-str">"`n=== $Group ==="</span> <span class="c-par">-ForegroundColor</span> Cyan
+
+    <span class="c-key">Get-ADGroupMember</span> <span class="c-par">-Identity</span> <span class="c-var">$Group</span> <span class="c-par">-Recursive</span> <span class="c-par">-ErrorAction</span> SilentlyContinue |
+        <span class="c-key">Select-Object</span> Name, SamAccountName, ObjectClass
+}</code></pre></div>
+      </div>
+      <div class="note">
+        <b>Calculated properties</b>
+        <p>The export version wraps each row in <span class="mono">@{Name=;Expression=}</span> &mdash; a <em>calculated property</em>. It adds a column saying which group the row came from, which the printing loop above shows on screen and then throws away.</p>
+      </div>
+      <div class="cmd">
+        <p>Account hygiene. The last one should always come back empty.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Search-ADAccount</span> <span class="c-par">-UsersOnly</span> <span class="c-par">-AccountExpired</span>
+<span class="c-key">Search-ADAccount</span> <span class="c-par">-UsersOnly</span>     <span class="c-par">-AccountInactive</span> <span class="c-par">-TimeSpan</span> 90.00:00:00
+<span class="c-key">Search-ADAccount</span> <span class="c-par">-ComputersOnly</span> <span class="c-par">-AccountInactive</span> <span class="c-par">-TimeSpan</span> 90.00:00:00
+
+<span class="c-cmt"># passwords that never expire - usually old service accounts nobody owns</span>
+<span class="c-key">Get-ADUser</span> <span class="c-par">-Filter</span> { PasswordNeverExpires <span class="c-par">-eq</span> <span class="c-var">$true</span> } <span class="c-par">-Properties</span> PasswordNeverExpires |
+    <span class="c-key">Select-Object</span> Name, SamAccountName
+
+<span class="c-cmt"># accounts needing NO password at all</span>
+<span class="c-key">Get-ADUser</span> <span class="c-par">-Filter</span> { PasswordNotRequired <span class="c-par">-eq</span> <span class="c-var">$true</span> } <span class="c-par">-Properties</span> PasswordNotRequired |
+    <span class="c-key">Select-Object</span> Name, SamAccountName</code></pre></div>
+      </div>
+
+    </section>
+
+    <section class="part" id="p17">
+      <div class="part-head">
+        <span class="part-num">17</span>
+        <div>
+          <h2>Domain controller health</h2>
+          <p class="sub">What you run first when something is broken and you don't know what.</p>
+        </div>
+      </div>
+      <div class="note">
+        <b>Check the clock early</b>
+        <p>Kerberos rejects any ticket where the clocks differ by more than five minutes. A DC with bad time breaks <strong>all</strong> authentication domain-wide &mdash; and the symptom, &ldquo;access denied&rdquo;, looks nothing like a clock problem.</p>
+      </div>
+      <div class="cmd">
+        <p><code>dcdiag</code> runs about thirty tests against the DC. The DNS one is worth running on its own, because DNS causes most AD faults.</p>
+        <div class="codewrap"><pre><code>dcdiag
+dcdiag /v
+dcdiag /test:dns /v</code></pre></div>
+      </div>
+      <div class="cmd">
+        <p>SYSVOL and NETLOGON are where Group Policy and logon scripts actually live. If these are missing, policy silently stops applying everywhere.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-SmbShare</span> <span class="c-par">-Name</span> SYSVOL, NETLOGON
+
+<span class="c-cmt"># ...and can they be reached? Both should return True.</span>
+<span class="c-key">Test-Path</span> <span class="c-str">"\\\\$DomainName\\SYSVOL"</span>
+<span class="c-key">Test-Path</span> <span class="c-str">"\\\\$DomainName\\NETLOGON"</span></code></pre></div>
+      </div>
+      <div class="cmd">
+        <p>The six services a DC cannot work without. All should be Running.</p>
+        <div class="codewrap"><pre><code><span class="c-cmt">#  NTDS the AD database  ·  DNS  ·  Netlogon secure channel + SYSVOL</span>
+<span class="c-cmt">#  KDC Kerberos tickets  ·  ADWS what the PS module talks to  ·  DFSR SYSVOL replication</span>
+<span class="c-key">Get-Service</span> NTDS, DNS, Netlogon, KDC, ADWS, DFSR |
+    <span class="c-key">Format-Table</span> Name, Status, StartType
+
+w32tm /query /status
+w32tm /query /source
+w32tm /query /configuration</code></pre></div>
+      </div>
+
+    </section>
+
+    <section class="part" id="p18">
+      <div class="part-head">
+        <span class="part-num">18</span>
+        <div>
+          <h2>AD Recycle Bin</h2>
+          <p class="sub">Delete something, then get it back intact.</p>
+        </div>
+      </div>
+      <p class="lede">
+        Deleting an AD object normally leaves a <strong>tombstone</strong> &mdash; a husk with
+        almost every attribute stripped out. The Recycle Bin keeps the object intact, so a
+        restore brings back its attributes, its group memberships, and the same SID. That
+        last part is why file permissions still work afterwards.
+      </p>
+      <div class="note warn">
+        <b>Enabling it is permanent</b>
+        <p>There is no supported way to turn the Recycle Bin back off once it's on. It is still the right call &mdash; just know it's a one-way door before you run it.</p>
+      </div>
+      <div class="cmd">
+        <p>Check, enable forest-wide, check again. Empty <code>EnabledScopes</code> means it isn&rsquo;t on yet.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADOptionalFeature</span> <span class="c-par">-Filter</span> <span class="c-str">"Name -eq &#39;Recycle Bin Feature&#39;"</span> |
+    <span class="c-key">Select-Object</span> Name, EnabledScopes
+
+<span class="c-key">Enable-ADOptionalFeature</span> `
+    <span class="c-par">-Identity</span> <span class="c-str">"Recycle Bin Feature"</span> `
+    <span class="c-par">-Scope</span> ForestOrConfigurationSet `
+    <span class="c-par">-Target</span> <span class="c-var">$Forest</span>.Name</code></pre></div>
+      </div>
+      <div class="cmd">
+        <p>Prove it on a disposable account. Note the ObjectGUID first &mdash; it&rsquo;s the one identifier that survives deletion.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Remove-ADUser</span> <span class="c-par">-Identity</span> <span class="c-str">"recycle.test"</span> <span class="c-par">-Confirm:</span><span class="c-var">$false</span>
+
+<span class="c-cmt"># deleted objects are invisible to Get-ADUser - you need Get-ADObject.</span>
+<span class="c-cmt"># LastKnownParent is the OU it came from, which is what makes the</span>
+<span class="c-cmt"># restore land back in the right place.</span>
+<span class="c-key">Get-ADObject</span> `
+        <span class="c-par">-Filter</span> <span class="c-str">"SamAccountName -eq &#39;recycle.test&#39;"</span> `
+        <span class="c-par">-IncludeDeletedObjects</span> `
+        <span class="c-par">-Properties</span> SamAccountName, LastKnownParent |
+    <span class="c-key">Format-List</span> Name, SamAccountName, Deleted, LastKnownParent, ObjectGUID
+
+<span class="c-key">Get-ADObject</span> <span class="c-par">-Filter</span> <span class="c-str">"SamAccountName -eq &#39;recycle.test&#39;"</span> <span class="c-par">-IncludeDeletedObjects</span> |
+    <span class="c-key">Restore-ADObject</span></code></pre></div>
+      </div>
+
+    </section>
+
+    
+    <section class="part" id="p19">
+      <div class="part-head">
+        <span class="part-num">19</span>
+        <div><h2>Backup</h2><p class="sub">A domain controller without a tested backup is a single point of failure for the whole domain.</p></div>
+      </div>
+      <div class="note">
+        <b>Two different jobs, often confused</b>
+        <p><strong>System state</strong> is the AD database itself &mdash; NTDS.dit, SYSVOL, the registry. It's what you restore from when the DC dies.</p><p><strong>GPO backup</strong> is just the policy objects. Far more common in practice: someone edits a GPO, breaks something, and you roll back that one GPO without touching the rest of the domain.</p>
+      </div>
+      <div class="cmd">
+        <p>Check the target volume first &mdash; a system state backup of a lab DC runs 8&ndash;15&nbsp;GB, and <code>-backuptarget</code> must be a volume that exists and isn't the system drive.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-Volume</span> |
+    <span class="c-key">Format-Table</span> DriveLetter, FileSystemLabel, FileSystem, SizeRemaining, Size
+
+wbadmin start systemstatebackup <span class="c-par">-backuptarget:</span>E: <span class="c-par">-quiet</span>
+
+wbadmin get status
+wbadmin get versions</code></pre></div>
+      </div>
+      <div class="cmd">
+        <p>Back up every GPO. The <code>-Comment</code> is stamped into the backup manifest &mdash; it's how you tell three backups apart six months later.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$GPOBackupPath</span> = <span class="c-str">"C:\LabBackups\GPO"</span>
+
+<span class="c-key">New-Item</span> <span class="c-par">-Path</span> <span class="c-var">$GPOBackupPath</span> <span class="c-par">-ItemType</span> Directory <span class="c-par">-Force</span>
+
+<span class="c-key">Backup-GPO</span> <span class="c-par">-All</span> <span class="c-par">-Path</span> <span class="c-var">$GPOBackupPath</span> <span class="c-par">-Comment</span> <span class="c-str">"Full lab GPO backup $(Get-Date)"</span>
+
+<span class="c-cmt"># each GPO lands in its own GUID-named folder</span>
+<span class="c-key">Get-ChildItem</span> <span class="c-par">-Path</span> <span class="c-var">$GPOBackupPath</span> <span class="c-par">-Recurse</span>
+
+<span class="c-cmt"># to restore one later:</span>
+<span class="c-cmt">#   Restore-GPO -Name </span><span class="c-cmt">"LAB - Workstation Security Baseline"</span><span class="c-cmt"> -Path $GPOBackupPath</span></code></pre></div>
+      </div>
+      <div class="note warn">
+        <b>Two things the notes got wrong here</b>
+        <p><span class="mono">wbadmin start systemstatebackup</span> appeared <em>twice in a row</em> &mdash; running it twice wastes an hour and a lot of disk. And <span class="mono">-backuptarget:E:</span> assumes an E: volume exists; on a machine without one it simply fails.</p>
+      </div>
+    </section>
+
+    <section class="part" id="p20">
+      <div class="part-head">
+        <span class="part-num">20</span>
+        <div><h2>CSV reports</h2><p class="sub">Turning the domain into files you can hand over, diff against last month, or open in Excel.</p></div>
+      </div>
+      <div class="cmd">
+        <p>Every GPO's full settings as one browsable HTML report &mdash; this is what you attach to a change request.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-GPOReport</span> <span class="c-par">-All</span> <span class="c-par">-ReportType</span> Html <span class="c-par">-Path</span> <span class="c-str">"C:\LabReports\All-GPOs.html"</span></code></pre></div>
+      </div>
+      <div class="cmd">
+        <p>Users. <code>LastLogonDate</code> and <code>PasswordLastSet</code> are the two columns that turn a list into an audit.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADUser</span> `
+        <span class="c-par">-Filter</span> * `
+        <span class="c-par">-SearchBase</span> <span class="c-var">$UsersOU</span> `
+        <span class="c-par">-Properties</span> Department, Title, Office, Enabled, LastLogonDate, PasswordLastSet |
+    <span class="c-key">Select-Object</span> Name, SamAccountName, Department, Title, Office, Enabled,
+        LastLogonDate, PasswordLastSet, DistinguishedName |
+    <span class="c-key">Export-Csv</span> <span class="c-par">-Path</span> <span class="c-str">"C:\LabReports\AD-Users.csv"</span> <span class="c-par">-NoTypeInformation</span>
+
+<span class="c-cmt"># computers - OperatingSystem exposes machines nobody has patched in years</span>
+<span class="c-cmt"># groups, and OUs with ProtectedFromAccidentalDeletion, follow the same shape</span></code></pre></div>
+      </div>
+      <div class="note">
+        <b>Always use -NoTypeInformation</b>
+        <p>Without it, Export-Csv writes a <span class="mono">#TYPE System.Management.Automation...</span> line at the top, which Excel shows as a junk first row.</p>
+      </div>
+      <div class="cmd">
+        <p>Group membership, flattened to one row per group-member pair &mdash; the shape you actually want for reviewing access.</p>
+        <div class="codewrap"><pre><code><span class="c-var">$GroupMembershipReport</span> = <span class="c-key">foreach</span> (<span class="c-var">$Group</span> <span class="c-key">in</span> (<span class="c-key">Get-ADGroup</span> <span class="c-par">-Filter</span> * <span class="c-par">-SearchBase</span> <span class="c-var">$GroupsOU</span>)) {
+
+    <span class="c-var">$Members</span> = <span class="c-key">Get-ADGroupMember</span> <span class="c-par">-Identity</span> <span class="c-var">$Group</span> <span class="c-par">-ErrorAction</span> SilentlyContinue
+
+    <span class="c-key">if</span> (<span class="c-var">$Members</span>) {
+        <span class="c-key">foreach</span> (<span class="c-var">$Member</span> <span class="c-key">in</span> <span class="c-var">$Members</span>) {
+            [PSCustomObject]@{
+                GroupName        = <span class="c-var">$Group</span>.Name
+                MemberName       = <span class="c-var">$Member</span>.Name
+                MemberType       = <span class="c-var">$Member</span>.ObjectClass
+            }
+        }
+    }
+    <span class="c-key">else</span> {
+        [PSCustomObject]@{ GroupName = <span class="c-var">$Group</span>.Name; MemberName = <span class="c-str">"&lt;No members&gt;"</span> }
+    }
+}</code></pre></div>
+      </div>
+      <div class="note">
+        <b>Why the else branch matters</b>
+        <p>An <em>empty</em> group still gets a row, so it appears in the report instead of silently vanishing. Empty security groups are worth seeing &mdash; they're usually leftovers nobody cleaned up, and they accumulate.</p>
+      </div>
+    </section>
+
+    <section class="part" id="p21">
+      <div class="part-head">
+        <span class="part-num">21</span>
+        <div><h2>Audit account</h2><p class="sub">A read-only account for assessment tooling, so you never run a scanner as Domain Admin.</p></div>
+      </div>
+      <p class="lede">
+        AD assessment tools &mdash; ADRecon, PingCastle, BloodHound &mdash; only need to
+        <em>read</em> the directory. Running them as Domain Admin is the lazy habit that turns
+        an audit into an incident: the tool's credentials become the most valuable thing on the
+        network. A standard domain user can already read most of AD, which is the whole point
+        of this account.
+      </p>
+      <div class="cmd">
+        <p>No groups, no rights beyond Domain Users &mdash; and it still works.</p>
+        <div class="codewrap"><pre><code><span class="c-key">New-ADUser</span> `
+    <span class="c-par">-Name</span> <span class="c-str">"ADRecon Audit User"</span> `
+    <span class="c-par">-SamAccountName</span> <span class="c-str">"adrecon.audit"</span> `
+    <span class="c-par">-UserPrincipalName</span> <span class="c-str">"adrecon.audit@$DomainName"</span> `
+    <span class="c-par">-Description</span> <span class="c-str">"Standard read-only account for authorised AD assessments"</span> `
+    <span class="c-par">-Path</span> <span class="c-var">$AuditAccountOU</span> `
+    <span class="c-par">-AccountPassword</span> <span class="c-var">$ADReconPassword</span> `
+    <span class="c-par">-Enabled</span> <span class="c-var">$true</span> `
+    <span class="c-par">-ChangePasswordAtLogon</span> <span class="c-var">$false</span>
+
+<span class="c-cmt"># confirm it is ONLY in Domain Users. Anything else here means the</span>
+<span class="c-cmt"># account is over-privileged and should not be handed to a scanner.</span>
+<span class="c-key">Get-ADPrincipalGroupMembership</span> <span class="c-str">"adrecon.audit"</span> |
+    <span class="c-key">Select-Object</span> Name, GroupScope</code></pre></div>
+      </div>
+      <div class="note">
+        <b>The one place ChangePasswordAtLogon $false is correct</b>
+        <p>Everywhere else in this script that flag is <span class="mono">$true</span>, deliberately. Here it's <span class="mono">$false</span> because a tool cannot answer a password-change prompt &mdash; which is exactly why the account must carry no privileges to compensate.</p>
+      </div>
+      <div class="note warn">
+        <b>The worst bug in the whole set was here</b>
+        <p>The notes redefined <span class="mono">$UsersOU</span> at this point to <span class="mono">"OU=Information Technology,OU=LAB-Users,$DomainDN"</span> &mdash; silently repointing it from LAB-Users to one department. Every later command using it would target the wrong OU, and <strong>nothing would error</strong>. It now uses its own <span class="mono">$AuditAccountOU</span>.</p>
+      </div>
+    </section>
+
+    <section class="part" id="p22">
+      <div class="part-head">
+        <span class="part-num">22</span>
+        <div>
+          <h2>Verify — prove it all worked</h2>
+          <p class="sub">All read-only. Compare against the "before" snapshot from Part 3.</p>
+        </div>
+      </div>
+
+      <div class="cmd">
+        <p>All five machine accounts with the OU they landed in. If the DistinguishedName shows your Sydney / Melbourne / Servers OUs, staging worked.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-ADComputer</span> `
+   <span class="c-par">-Filter</span> * `
+   <span class="c-par">-SearchBase</span> <span class="c-var">$ComputersOU</span> `
+   <span class="c-par">-Properties</span> Description |
+   <span class="c-key">Select-Object</span> Name, Enabled, Description, DistinguishedName |
+   <span class="c-key">Format-Table</span> <span class="c-par">-AutoSize</span></code></pre></div>
+      </div>
+
+      <div class="cmd">
+        <p>The server's own adapters, then a final DNS check — the same test as Part 3, run again at the end to confirm nothing you did broke name resolution.</p>
+        <div class="codewrap"><pre><code><span class="c-key">Get-NetAdapter</span>
+
+<span class="c-key">Resolve-DnsName</span> contoso.com
+<span class="c-key">Resolve-DnsName</span> <span class="c-str">"_ldap._tcp.dc._msdcs.contoso.com"</span> <span class="c-par">-Type</span> SRV</code></pre></div>
+      </div>
+
+      <div class="note warn">
+        <b>Hardcoded domain</b>
+        <p>These two lines have <span class="mono">contoso.com</span> typed in by hand, while
+        everything else in the script uses <span class="mono">$DomainName</span>. Worth swapping,
+        so the script survives being run in a different domain.</p>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="foot-in">
+    <p>
+      <b>What ships with this page</b>
+      <span class="mono">AD-Lab-Runbook.ps1</span> &mdash; the same 22 parts as a runnable
+      script, with all 24 mistakes corrected and each fix marked
+      <span class="mono"># FIXED:</span> where it occurs. Alongside it,
+      <span class="mono">VALIDATION-NOTES.md</span> lists every issue, what it did, and how
+      it was fixed. Run the script one region at a time; don't press F5.
+    </p>
+    <p>
+      <b>Core vs optional</b>
+      Parts 1&ndash;8 and 22 are the basic Active Directory structure the Cluster&nbsp;3
+      project asks for &mdash; a complete, assessable build on its own. Parts 9&ndash;21 are
+      what the class covered on top: Group Policy, shares, lifecycle, delegation, gMSA,
+      auditing, privileged review, DC health and the Recycle Bin.
+    </p>
+    <p>
+      <b>A note on the code</b>
+      Every command on this page is reproduced as written in class, mistakes included,
+      and flagged where it appears rather than quietly fixed. Working out why something
+      fails silently is most of the lesson. The script was checked statically &mdash; balanced
+      quotes and brackets, no curly quotes, no broken line-continuations &mdash; but it has
+      not been run against a live domain.
+    </p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // copy buttons
+  document.querySelectorAll(".codewrap").forEach(function (w) {
+    var pre = w.querySelector("pre");
+    if (!pre) return;
+    var b = document.createElement("button");
+    b.className = "copy";
+    b.type = "button";
+    b.textContent = "Copy";
+    b.addEventListener("click", function () {
+      var text = pre.innerText;
+      var done = function () {
+        b.textContent = "Copied";
+        b.classList.add("done");
+        setTimeout(function () { b.textContent = "Copy"; b.classList.remove("done"); }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () { b.textContent = "Failed"; });
+      } else {
+        var t = document.createElement("textarea");
+        t.value = text; document.body.appendChild(t); t.select();
+        try { document.execCommand("copy"); done(); } catch (e) { b.textContent = "Failed"; }
+        document.body.removeChild(t);
+      }
+    });
+    w.appendChild(b);
+  });
+
+  // scrollspy
+  var links = {};
+  document.querySelectorAll(".rail a").forEach(function (a) {
+    links[a.getAttribute("href").slice(1)] = a;
+  });
+  var parts = document.querySelectorAll(".part");
+  if (!("IntersectionObserver" in window) || !parts.length) return;
+  var seen = {};
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) { seen[e.target.id] = e.isIntersecting; });
+    var current = null;
+    parts.forEach(function (p) { if (seen[p.id] && !current) current = p.id; });
+    if (!current) return;
+    Object.keys(links).forEach(function (k) { links[k].classList.toggle("on", k === current); });
+  }, { rootMargin: "-10% 0px -70% 0px", threshold: 0 });
+  parts.forEach(function (p) { io.observe(p); });
+})();
+</script>
