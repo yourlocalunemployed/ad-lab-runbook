@@ -72,9 +72,50 @@ just know it is a one-way door before you run region 18.
 
 ## Note on how this was checked
 
-There is no PowerShell on the machine this was prepared on, so the script was
-**not** run against a live domain and has **not** been executed by a parser.
-What was checked, statically, across all 694 code lines: no curly quotes, every
-quote terminated, braces/parens/brackets balanced, no broken line-continuations,
-all 22 regions opened and closed, no assignment missing its `$`. Logic errors of
-the kind in issues 5 and 7 were found by reading, not by running.
+Three layers, in increasing order of strength. Be clear about which covers what.
+
+**1. Static reading** — the original pass, across all 694 code lines (the file is
+1503 lines; the rest is comment and blank). No curly quotes, every quote
+terminated, braces/parens/brackets balanced, no broken line-continuations, all 22
+regions opened and closed, no assignment missing its `$`. The logic errors in
+issues 5 and 7 were found this way — by reading, not by running.
+
+**2. Parser** — the file has since been through PowerShell's own parser, which
+the first pass could not do. **0 parse errors across 4,438 tokens.** Reproducible
+on any machine with PowerShell 7:
+
+```powershell
+$t=$null; $e=$null
+[System.Management.Automation.Language.Parser]::ParseFile(
+    './AD-Lab-Runbook.ps1', [ref]$t, [ref]$e) | Out-Null
+"$($e.Count) parse errors, $($t.Count) tokens"
+```
+
+An AST pass over the same file also confirms no variable is assigned twice
+(the bug class behind issues 11, 12 and 20) and none is read before assignment.
+
+**3. A live domain — partially.** Regions 1–8 and 22 were run end to end against
+a live **Windows Server 2022** domain by a third party and completed
+successfully. **Regions 9–21 have still never been run.** A parser proves the
+script is structurally sound; only that live run proves a command does what its
+comment claims, and it only proves it for the regions it touched.
+
+### Known limitation: the script is not fully re-runnable
+
+The live run was a first pass against a clean domain. Guard coverage is uneven:
+
+| Command | Guarded with `if (-not (...))` | Unguarded |
+|---|--:|--:|
+| `New-ADOrganizationalUnit` | 6 | 0 |
+| `New-ADGroup` | 4 | 0 |
+| `New-GPO` / `New-GPLink` | 4 | 0 |
+| `New-ADComputer` | 1 | 0 |
+| `New-ADUser` | 1 | 4 |
+| `Add-ADGroupMember` | 0 | 12 |
+| `Add-KdsRootKey` | 0 | 1 |
+| `New-ADServiceAccount` | 0 | 1 |
+
+Re-running a region containing one of the 18 unguarded calls throws rather than
+skipping. Most are harmless noise — "already a member", "already exists" — but
+`Add-KdsRootKey` in region 13 is not: a second run adds a **second forest root
+key**. Check `Get-KdsRootKey` before re-running that region.
