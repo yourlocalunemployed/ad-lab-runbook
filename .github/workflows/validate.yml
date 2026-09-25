@@ -1,0 +1,125 @@
+name: Validate runbook
+
+# Why this exists: the docs claimed for two commits that no parser had ever seen
+# this script, because the machine it was written on had no PowerShell. Nothing
+# was checking. This runs the check that was missing, on every push and PR, so a
+# syntax error fails here instead of on someone's domain controller.
+#
+# It is deliberately static only. It never connects to Active Directory, never
+# runs a cmdlet from the runbook, and needs no credentials — it parses the file
+# and inspects the resulting syntax tree.
+
+on:
+  push:
+    branches: [main]
+    paths: ['**.ps1', '.github/workflows/validate.yml']
+  pull_request:
+    paths: ['**.ps1', '.github/workflows/validate.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  parse:
+    # ubuntu is enough: PowerShell 7 parses Windows-only cmdlets fine, because
+    # parsing is a language-level check and does not resolve command names.
+    # It is also far faster to start than a windows runner.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse every .ps1 and fail on any syntax error
+        shell: pwsh
+        run: |
+          $failed = $false
+
+          foreach ($file in Get-ChildItem -Path . -Filter *.ps1 -Recurse) {
+              $tokens = $null
+              $errors = $null
+              [System.Management.Automation.Language.Parser]::ParseFile(
+                  $file.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+
+              if ($errors.Count -gt 0) {
+                  $failed = $true
+                  Write-Host "::error file=$($file.Name)::$($errors.Count) parse error(s)"
+                  foreach ($e in $errors) {
+                      $line = $e.Extent.StartLineNumber
+                      $col  = $e.Extent.StartColumnNumber
+                      Write-Host "::error file=$($file.Name),line=$line,col=$col::$($e.Message)"
+                  }
+              } else {
+                  Write-Host "OK  $($file.Name) - 0 parse errors, $($tokens.Count) tokens"
+              }
+          }
+
+          if ($failed) { exit 1 }
+
+      - name: Check variable flow
+        shell: pwsh
+        run: |
+          # Catches the bug class behind documented issues 11, 12 and 20: a
+          # variable silently reassigned partway through, so every later command
+          # using it quietly targets the wrong thing. Nothing errors — the wrong
+          # thing just happens, which is why reading missed it the first time.
+          $failed = $false
+
+          foreach ($file in Get-ChildItem -Path . -Filter *.ps1 -Recurse) {
+              $tokens = $null
+              $errors = $null
+              $ast = [System.Management.Automation.Language.Parser]::ParseFile(
+                  $file.FullName, [ref]$tokens, [ref]$errors)
+              if ($errors.Count -gt 0) { continue }  # already reported above
+
+              $assigned = @{}
+              $ast.FindAll({
+                  param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst]
+              }, $true) | ForEach-Object {
+                  $left = $_.Left
+                  if ($left -is [System.Management.Automation.Language.VariableExpressionAst]) {
+                      $name = $left.VariablePath.UserPath
+                      if (-not $assigned.ContainsKey($name)) { $assigned[$name] = @() }
+                      $assigned[$name] += $_.Extent.StartLineNumber
+                  }
+              }
+
+              # A loop counter or accumulator is legitimately reassigned. This script
+              # has none at top level, so any repeat here is the clobber bug.
+              foreach ($name in $assigned.Keys) {
+                  if ($assigned[$name].Count -gt 1) {
+                      $failed = $true
+                      $lines = $assigned[$name] -join ', '
+                      Write-Host "::error file=$($file.Name)::`$$name is assigned $($assigned[$name].Count) times (lines $lines). A second assignment silently repoints every later use - see issues 11, 12 and 20 in VALIDATION-NOTES.md. Give it its own variable."
+                  }
+              }
+          }
+
+          if ($failed) { exit 1 }
+          Write-Host "OK  no variable assigned more than once"
+
+      - name: Check for smart quotes in executable code
+        shell: pwsh
+        run: |
+          # Curly quotes from a Word or Teams paste are not valid PowerShell
+          # string delimiters. They are invisible in most editors and were
+          # documented issue 2. Comments may contain them; code may not.
+          $failed = $false
+
+          foreach ($file in Get-ChildItem -Path . -Filter *.ps1 -Recurse) {
+              $tokens = $null
+              $errors = $null
+              [System.Management.Automation.Language.Parser]::ParseFile(
+                  $file.FullName, [ref]$tokens, [ref]$errors) | Out-Null
+
+              foreach ($t in $tokens) {
+                  if ($t.Kind -eq 'Comment') { continue }
+                  if ($t.Text -match '[‘’“”]') {
+                      $failed = $true
+                      Write-Host "::error file=$($file.Name),line=$($t.Extent.StartLineNumber)::smart quote in code - PowerShell only accepts straight ' and `""
+                  }
+              }
+          }
+
+          if ($failed) { exit 1 }
+          Write-Host "OK  no smart quotes in executable code"
