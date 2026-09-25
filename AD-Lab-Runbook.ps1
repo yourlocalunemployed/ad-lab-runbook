@@ -912,14 +912,23 @@ dsacls "OU=LAB-Users,$DomainDN" |
 # One-time, forest-wide. Creates the root key gMSA passwords derive from.
 # Normally it waits 10 hours to replicate; -EffectiveTime backdates it so a
 # single-DC lab works immediately.
-# RUN ONE OF THESE, ONCE, ONLY IF YOU DON'T ALREADY HAVE A KDS ROOT KEY.
-#   Check first:  Get-KdsRootKey
 #
-# Production:
+# Production instead of the lab line below:
 # Add-KdsRootKey -EffectiveImmediately
 #
-# Lab / single DC:
-Add-KdsRootKey -EffectiveTime ((Get-Date).AddHours(-10))
+# FIXED: this ran unguarded, unlike every other creation in this script. The
+#        comment said "ONLY IF YOU DON'T ALREADY HAVE A KDS ROOT KEY. Check
+#        first: Get-KdsRootKey" — but nothing enforced it, so re-running the
+#        region added a SECOND forest root key. The check is now in the code.
+#        Forest-wide state: guarding it matters more here than anywhere else.
+if (-not (Get-KdsRootKey -ErrorAction SilentlyContinue)) {
+
+    # Lab / single DC: backdate so the key is usable immediately.
+    Add-KdsRootKey -EffectiveTime ((Get-Date).AddHours(-10))
+
+} else {
+    Write-Host "KDS root key already exists - skipping (this is forest-wide, only ever needed once)."
+}
 
 # Which COMPUTERS are allowed to retrieve the password. The members of this
 # group are machines, not people.

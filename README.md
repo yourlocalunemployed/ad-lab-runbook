@@ -95,10 +95,18 @@ The instructive ones:
 
 ## Honest limitations
 
-- **This has not been run against a live domain by the author of this
-  repository.** It was validated *statically* — balanced quotes and brackets, no
-  curly quotes, no broken line continuations, all 22 regions opened and closed,
-  no assignment missing its `$`. The logic bugs above were found by reading.
+- **The core is proven on a live domain. The optional half is not.** Regions 1–8
+  plus 22 ran end to end against a live Windows Server 2022 domain and completed
+  successfully — run by a third party, not the author. **Regions 9–21 have never
+  been executed**; they are parser-verified and read, nothing more.
+- **The script is structurally verified, which is weaker than it sounds.** It
+  parses with 0 errors across 4,438 tokens, and no variable is assigned twice or
+  read before assignment. That proves it will *run*. It does not prove any
+  command does what its comment claims on your domain.
+- **Run each region once.** OUs, groups and GPOs skip if they already exist, but
+  18 other commands have no such guard and throw on a second pass. One matters:
+  `Add-KdsRootKey` in region 13 would add a second forest root key — check
+  `Get-KdsRootKey` first. See `VALIDATION-NOTES.md` for the full table.
 - **Test it in a lab before you point it at anything you care about.** It creates
   users, groups, computers and GPOs, changes audit policy, and region 18 makes a
   permanent change to the forest.
